@@ -12,9 +12,9 @@ The purpose of this work is to study structural restrictions associated with the
 
 ## Contents
 
-- Research paper (PDF)
-- Lean formalization / verification files
-- Supplementary information
+- [Research paper — English (PDF)](ARC_Automatic_Rigidity_Collatz_Muteki_EN.pdf)
+- [研究論文 — 日本語版 (PDF)](ARC_Automatic_Rigidity_Collatz_Muteki_JA.pdf)
+- [Lean 4 source files (ZIP)](ARC_Lean4_Source.zip)
 
 ## Author
 
