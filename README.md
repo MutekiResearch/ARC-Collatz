@@ -24,6 +24,4 @@ Independent research project.
 
 ## Status
 
-Work in progress.
-
-This repository is currently being prepared for public release.
+Public release: September 2026.
