@@ -1,6 +1,4 @@
 # ARC-Collatz
-A mathematical investigation related to the Collatz map.
-# ARC-Collatz
 
 A mathematical investigation related to the Collatz map.
 
