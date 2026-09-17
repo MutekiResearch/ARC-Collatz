@@ -26,9 +26,14 @@ The current public development focuses on the base-3 and base-5 cases.
 
 ---
 
-## Main results
+## Releases
 
 ### ARC3 — base 3
+
+- [ARC3 paper directory](papers/ARC3/)
+- Planned files:
+  - `ARC3_English.pdf`
+  - `ARC3_Japanese.pdf`
 
 For a finite-alphabet sequence \(a : \mathbb{N} \to A\), assume
 
@@ -36,65 +41,73 @@ For a finite-alphabet sequence \(a : \mathbb{N} \to A\), assume
 a_{2n}=a_n, \qquad a_{2n+1}=a_{3n+2},
 \]
 
-and assume that \(a\) is 3-automatic.
+and assume that \(a\) is 3-automatic. ARC3 proves that \(a\) is constant on all positive integers; the value at \(0\) remains free.
 
-The ARC3 result shows that \(a\) is constant on all positive integers. The value at \(0\) is not forced by the theorem.
+The proof route uses a kernel-transfer argument from base 3 to base 2, followed by Cobham's theorem and period elimination.
 
-The proof route is based on a kernel-transfer argument from base 3 to base 2, followed by Cobham's theorem and a period-elimination argument.
-
-**Formalization note:** the Lean 4 development formalizes the ARC3 argument, while Cobham's theorem is used as an external mathematical assumption rather than reproved inside the project.
+**Formalization note:** Cobham's theorem is used as an explicit external mathematical principle rather than reproved inside the project.
 
 ### ARC5 — base 5
 
-For a finite-alphabet sequence invariant under the shortcut Collatz map and automatic in base 5, the ARC5 development again proves constancy on all positive integers.
+- [ARC5 paper directory](papers/ARC5/)
+- Planned files:
+  - `ARC5_English.pdf`
+  - `ARC5_Japanese.pdf`
 
-The ARC5 proof is structurally different from ARC3. Its main route is:
+For a finite-alphabet sequence invariant under the shortcut Collatz map and automatic in base 5, ARC5 again proves constancy on all positive integers.
+
+Its proof is structurally different from ARC3:
 
 1. finite Collatz local synchronization,
 2. dyadic thinness of disagreement/change sets,
 3. base-5 finite-state pumping,
 4. finiteness of the adjacent-change set,
 5. eventual constancy,
-6. propagation from the constant tail to every positive integer using doubling invariance.
+6. propagation from the constant tail to every positive integer by doubling invariance.
 
-The main ARC5 route does **not** rely on Cobham's theorem.
+The main ARC5 route does **not** use Cobham's theorem.
 
 ---
 
-## Project structure
-
-The repository is being reorganized into the following layout:
+## Repository structure
 
 ```text
 ARC-Collatz/
 ├─ README.md
 ├─ papers/
 │  ├─ ARC3/
+│  │  ├─ README.md
 │  │  ├─ ARC3_English.pdf
 │  │  └─ ARC3_Japanese.pdf
 │  └─ ARC5/
+│     ├─ README.md
 │     ├─ ARC5_English.pdf
 │     └─ ARC5_Japanese.pdf
 ├─ lean/
+│  ├─ README.md
 │  ├─ ARC3/
-│  └─ ARC5/
+│  ├─ ARC5/
+│  └─ shared/
 └─ archive/
-   └─ earlier public release files
+   └─ earlier public-release files
 ```
 
-Until that reorganization is complete, the original public-release files remain at the repository root.
+The paper directories and Lean-release guidance have now been created on the release-preparation branch. The four final PDFs are prepared separately and will be inserted into the corresponding paper directories. The reproducible Lean tree will be copied from the exact local project state that successfully compiled, including shared bridge files and project metadata.
 
 ---
 
 ## Formal verification
 
-The project uses Lean 4 to audit the proof structure and theorem dependencies.
+The project uses Lean 4 to audit proof structure and theorem dependencies.
 
 Representative ARC3 files include:
 
 - `ARC3KernelTransfer.lean`
 - `ARC3Main.lean`
 - `ARC3Audit.lean`
+- `ARC3Consequences.lean`
+
+These files also import shared ARC automaticity bridge modules, so the public Lean release must include the relevant shared dependency files rather than only the ARC3-specific files.
 
 Representative ARC5 files include the local-density and Stage5 chains, culminating in:
 
@@ -114,15 +127,17 @@ theorem arc5_final
 
 Lean verification checks the formal proof as encoded. It does not by itself establish literature novelty, nor does it replace mathematical scrutiny of definitions, imported assumptions, and model choices.
 
+See [lean/README.md](lean/README.md) for the release strategy.
+
 ---
 
 ## Relationship to the Collatz conjecture
 
 ARC3 and ARC5 are rigidity results for automatic sequences constrained by Collatz invariance.
 
-They should be viewed as structural results around the Collatz problem rather than a proof of the Collatz conjecture itself.
+They should be viewed as structural results around the Collatz problem rather than as proofs of the Collatz conjecture itself.
 
-One consequence considered in the papers is that the characteristic sequence of certain Collatz-invariant sets would be severely constrained if it were automatic in the relevant base. Such reformulations are useful for studying where automaticity can and cannot occur, but they do not by themselves settle the global Collatz conjecture.
+One consequence considered in the papers is that characteristic sequences of certain Collatz-invariant sets would be severely constrained if they were automatic in the relevant base. Such reformulations help identify where automaticity can and cannot occur, but they do not settle the global Collatz conjecture.
 
 ---
 
@@ -141,9 +156,11 @@ One consequence considered in the papers is that the characteristic sequence of 
 
 ## Current status
 
-- ARC3: mathematical paper prepared; Lean formalization completed for the project theorem, with Cobham used externally.
-- ARC5: mathematical paper prepared; Lean formalization reaches the packaged final positive-rigidity theorem.
-- Public repository reorganization: in progress.
+- ARC3: final English and Japanese Lean-verified manuscripts prepared.
+- ARC5: final English manuscript prepared; final Japanese manuscript rebuilt from the completed ARC5 proof route and prepared for release.
+- ARC3 Lean: theorem chain identified, including required shared bridge dependencies.
+- ARC5 Lean: final theorem chain completed locally; public source should be copied from the exact verified project tree rather than reconstructed from isolated archived files.
+- Public repository reorganization: active in a draft pull request.
 - Further bases and a more general ARC framework are planned as later investigations.
 
 Before treating any release as final, the project continues to emphasize:
@@ -168,13 +185,13 @@ The AI system is not listed as an author or bibliographic source. Responsibility
 
 ## Existing public-release files
 
-The repository currently also contains the original release files:
+The repository currently also contains the original release files at the root:
 
 - `ARC_Automatic_Rigidity_Collatz_Muteki_EN.pdf`
 - `ARC_Automatic_Rigidity_Collatz_Muteki_JA.pdf`
 - `ARC_Lean4_Source.zip`
 
-These are retained during the transition to the ARC3/ARC5 folder structure.
+These are retained during the transition to the ARC3/ARC5 directory structure.
 
 ---
 
