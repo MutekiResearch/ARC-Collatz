@@ -1,8 +1,12 @@
-# ARC3 Lean 4 source
+# ARC3 Lean 4 release notes
 
-This directory will contain the ARC3-specific Lean 4 files from the verified local project.
+This directory contains release notes for the ARC3 formalization.
 
-Core ARC3 files currently identified:
+The reproducible ARC3 source is distributed as part of the combined archive:
+
+- [ARC3_ARC5_Lean4_Source.zip](../ARC3_ARC5_Lean4_Source.zip)
+
+Core ARC3 files in that archive include:
 
 - `ARC3KernelTransfer.lean`
 - `ARC3Main.lean`
@@ -11,6 +15,6 @@ Core ARC3 files currently identified:
 
 ## Important dependency note
 
-These files are not standalone. In the verified project they import shared ARC modules, including automaticity bridge files and the earlier ARC theorem infrastructure. The public release must therefore include the corresponding shared files and Lean project metadata required for `lake env lean ...` / `lake build` to reproduce the checks.
+These files are not standalone. In the verified project they import shared ARC modules, including automaticity bridge files and earlier ARC theorem infrastructure. The combined release archive therefore includes the corresponding shared files and Lean project metadata required for reconstruction.
 
 Cobham's theorem is represented by an explicit external principle in the ARC3 development; it is not reproved internally.
