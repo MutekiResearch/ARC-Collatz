@@ -1,6 +1,10 @@
-# ARC5 Lean 4 source
+# ARC5 Lean 4 release notes
 
-This directory will contain the ARC5-specific Lean 4 files from the exact local project state that successfully compiled.
+This directory contains release notes for the ARC5 formalization.
+
+The reproducible ARC5 source is distributed as part of the combined archive:
+
+- [ARC3_ARC5_Lean4_Source.zip](../ARC3_ARC5_Lean4_Source.zip)
 
 The ARC5 proof has a long dependency chain, including local-density stages and the Stage5 pumping/change-set stages, culminating in:
 
@@ -19,6 +23,6 @@ Representative verified components include:
 
 ## Important dependency note
 
-Because multiple development versions exist for some intermediate files, the public source must not be reconstructed by selecting isolated files from archives. It should be copied from the exact local Lean project tree used for the successful final build, together with the required shared ARC modules and project metadata.
+Because multiple development versions exist for some intermediate files, the public source is distributed from the cleaned dependency closure of the exact verified local Lean project tree, together with the required shared ARC modules and project metadata. It should not be reconstructed by selecting isolated historical files.
 
 The main ARC5 proof route does not use Cobham's theorem.
