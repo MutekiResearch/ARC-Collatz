@@ -18,13 +18,22 @@ The central question is how strongly Collatz invariance constrains sequences tha
 
 > If a finite-alphabet sequence is automatic in base \(b\) and is invariant under the shortcut Collatz map, must it be constant on the positive integers?
 
-The current public development focuses on the base-3 and base-5 cases.
+The repository currently contains the earlier ARC2 release together with the later ARC3 and ARC5 developments.
 
 **Important:** this project does **not** claim to prove the Collatz conjecture.
 
 ---
 
 ## Releases
+
+### ARC2 — earlier release
+
+- [English paper (PDF)](papers/ARC2/ARC2_English.pdf)
+- [Japanese paper / 日本語版 (PDF)](papers/ARC2/ARC2_Japanese.pdf)
+- [ARC2 paper directory](papers/ARC2/)
+- [ARC2 Lean 4 source archive](lean/ARC2/ARC2_Lean4_Source.zip)
+
+These files are the original ARC2 public-release materials, reorganized into the same repository structure used for ARC3 and ARC5. Their binary contents were preserved unchanged during the move.
 
 ### ARC3 — base 3
 
@@ -67,12 +76,15 @@ The main ARC5 route does **not** use Cobham's theorem.
 
 ## Lean 4 formalization
 
+- [ARC2 Lean 4 source archive](lean/ARC2/ARC2_Lean4_Source.zip)
 - [ARC3 + ARC5 Lean 4 source archive](lean/ARC3_ARC5_Lean4_Source.zip)
 - [Lean release notes](lean/README.md)
 
-The public source archive was prepared from the verified local Lean project tree rather than reconstructed from isolated theorem files. This is important because ARC3 uses shared automaticity bridge modules and ARC5 has a long staged dependency chain.
+The ARC2 source archive is the original public ARC2 archive, moved without changing its binary content.
 
-The cleaned release archive contains the project metadata required for reconstruction (`lean-toolchain`, `lakefile.toml`, `lake-manifest.json`) together with the ARC source tree and a source-file manifest.
+The ARC3/ARC5 public source archive was prepared from the verified local Lean project tree rather than reconstructed from isolated theorem files. This is important because ARC3 uses shared automaticity bridge modules and ARC5 has a long staged dependency chain.
+
+The cleaned ARC3/ARC5 release archive contains the project metadata required for reconstruction (`lean-toolchain`, `lakefile.toml`, `lake-manifest.json`) together with the ARC source tree and a source-file manifest.
 
 Representative ARC3 files include:
 
@@ -107,6 +119,10 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
 ARC-Collatz/
 ├─ README.md
 ├─ papers/
+│  ├─ ARC2/
+│  │  ├─ README.md
+│  │  ├─ ARC2_English.pdf
+│  │  └─ ARC2_Japanese.pdf
 │  ├─ ARC3/
 │  │  ├─ README.md
 │  │  ├─ ARC3_English.pdf
@@ -115,15 +131,17 @@ ARC-Collatz/
 │     ├─ README.md
 │     ├─ ARC5_English.pdf
 │     └─ ARC5_Japanese.pdf
-├─ lean/
-│  ├─ README.md
-│  ├─ ARC3/
-│  ├─ ARC5/
-│  └─ ARC3_ARC5_Lean4_Source.zip
-└─ original public-release files at repository root
+└─ lean/
+   ├─ README.md
+   ├─ ARC2/
+   │  ├─ README.md
+   │  └─ ARC2_Lean4_Source.zip
+   ├─ ARC3/
+   ├─ ARC5/
+   └─ ARC3_ARC5_Lean4_Source.zip
 ```
 
-The `lean/ARC3/` and `lean/ARC5/` directories contain release notes; the reproducible combined Lean tree is distributed in the source archive above.
+The `lean/ARC3/` and `lean/ARC5/` directories contain release notes; the reproducible combined ARC3/ARC5 Lean tree is distributed in the combined source archive above.
 
 ---
 
@@ -152,9 +170,10 @@ One consequence considered in the papers is that characteristic sequences of cer
 
 ## Current status
 
-- ARC3: English and Japanese Lean-verified manuscripts released on this branch.
-- ARC5: English and Japanese manuscripts released on this branch.
-- Lean 4: cleaned ARC3 + ARC5 source archive released on this branch.
+- ARC2: original English/Japanese manuscripts and Lean archive retained in organized release directories.
+- ARC3: English and Japanese Lean-verified manuscripts released.
+- ARC5: English and Japanese manuscripts released.
+- Lean 4: ARC2 archive plus cleaned ARC3 + ARC5 source archive released.
 - Further bases and a more general ARC framework are planned as later investigations.
 
 Before treating the mathematical program as closed, the project continues to emphasize adversarial review of the Lean dependency chain, explicit axiom/dependency audits, definition-level checking, and separate literature/novelty auditing.
@@ -169,18 +188,6 @@ Independent Researcher (Japan)
 Generative AI, including OpenAI ChatGPT, was used as a research and drafting aid for mathematical exploration, Lean development, proof checking, manuscript preparation, and repository organization.
 
 The AI system is not listed as an author or bibliographic source. Responsibility for the released material remains with the human author.
-
----
-
-## Existing public-release files
-
-The repository also retains the earlier public-release files at the root:
-
-- `ARC_Automatic_Rigidity_Collatz_Muteki_EN.pdf`
-- `ARC_Automatic_Rigidity_Collatz_Muteki_JA.pdf`
-- `ARC_Lean4_Source.zip`
-
-These are retained for continuity with the earlier release.
 
 ---
 
