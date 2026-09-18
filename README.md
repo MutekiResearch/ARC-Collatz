@@ -18,7 +18,7 @@ The central question is how strongly Collatz invariance constrains sequences tha
 
 > If a finite-alphabet sequence is automatic in base \(b\) and is invariant under the shortcut Collatz map, must it be constant on the positive integers?
 
-The repository currently contains the earlier ARC2 release together with the later ARC3 and ARC5 developments.
+The repository contains ARC2, ARC3, ARC5, ARC7, and the all-even-base base-factor-descent development.
 
 **Important:** this project does **not** claim to prove the Collatz conjecture.
 
@@ -26,14 +26,12 @@ The repository currently contains the earlier ARC2 release together with the lat
 
 ## Releases
 
-### ARC2 — earlier release
+### ARC2 — base 2 / earlier release
 
 - [English paper (PDF)](papers/ARC2/ARC2_English.pdf)
 - [Japanese paper / 日本語版 (PDF)](papers/ARC2/ARC2_Japanese.pdf)
 - [ARC2 paper directory](papers/ARC2/)
 - [ARC2 Lean 4 source archive](lean/ARC2/ARC2_Lean4_Source.zip)
-
-These files are the original ARC2 public-release materials, reorganized into the same repository structure used for ARC3 and ARC5. Their binary contents were preserved unchanged during the move.
 
 ### ARC3 — base 3
 
@@ -41,17 +39,7 @@ These files are the original ARC2 public-release materials, reorganized into the
 - [Japanese paper / 日本語版 (PDF)](papers/ARC3/ARC3_Japanese.pdf)
 - [ARC3 paper directory](papers/ARC3/)
 
-For a finite-alphabet sequence \(a : \mathbb{N} \to A\), assume
-
-\[
-a_{2n}=a_n, \qquad a_{2n+1}=a_{3n+2},
-\]
-
-and assume that \(a\) is 3-automatic. ARC3 proves that \(a\) is constant on all positive integers; the value at \(0\) remains free.
-
-The proof route uses a kernel-transfer argument from base 3 to base 2, followed by Cobham's theorem and period elimination.
-
-**Formalization note:** Cobham's theorem is used as an explicit external mathematical principle rather than reproved inside the project.
+ARC3 proves positive-domain constancy for 3-automatic shortcut-Collatz-invariant sequences. The proof uses kernel transfer to base 2, Cobham's theorem, and period elimination. Cobham's theorem is used as an explicit external mathematical principle.
 
 ### ARC5 — base 5
 
@@ -59,18 +47,49 @@ The proof route uses a kernel-transfer argument from base 3 to base 2, followed 
 - [Japanese paper / 日本語版 (PDF)](papers/ARC5/ARC5_Japanese.pdf)
 - [ARC5 paper directory](papers/ARC5/)
 
-For a finite-alphabet sequence invariant under the shortcut Collatz map and automatic in base 5, ARC5 again proves constancy on all positive integers.
-
-Its proof is structurally different from ARC3:
-
-1. finite Collatz local synchronization,
-2. dyadic thinness of disagreement/change sets,
-3. base-5 finite-state pumping,
-4. finiteness of the adjacent-change set,
-5. eventual constancy,
-6. propagation from the constant tail to every positive integer by doubling invariance.
+ARC5 proves positive-domain constancy for 5-automatic shortcut-Collatz-invariant sequences. The proof proceeds through local synchronization, dyadic thinness, base-5 pumping, finiteness of the adjacent-change set, eventual constancy, and propagation by doubling invariance.
 
 The main ARC5 route does **not** use Cobham's theorem.
+
+### ARC7 — base 7
+
+- [English paper (PDF)](papers/ARC7/ARC7_English.pdf)
+- [Japanese paper / 日本語版 (PDF)](papers/ARC7/ARC7_Japanese.pdf)
+- [ARC7 paper directory](papers/ARC7/)
+- [ARC7 Lean 4 source archive](lean/ARC7/ARC7_Lean4_Source.zip)
+
+ARC7 proves positive-domain constancy for 7-automatic shortcut-Collatz-invariant sequences.
+
+Its characteristic mechanism is a doubled-loop pumping construction. For a loop of length \(L\),
+
+\[
+7^{2L}\equiv1\pmod 8,
+\]
+
+which restores exact dyadic control. The proof then passes through dyadic residue permutation and child filling, topological pumping, finiteness of the change set, eventual constancy, and propagation to all positive integers.
+
+The ARC7 main proof does **not** use Cobham's theorem. The value at zero remains genuinely free, and this sharpness is formalized in Lean.
+
+### All even bases — base-factor descent
+
+- [English paper (PDF)](papers/ARC_EvenBase/ARC_EvenBase_English.pdf)
+- [Japanese paper / 日本語版 (PDF)](papers/ARC_EvenBase/ARC_EvenBase_Japanese.pdf)
+- [All-even-base paper directory](papers/ARC_EvenBase/)
+- [All-even-base Lean 4 source archive](lean/ARC_EvenBase/ARC_EvenBase_Lean4_Source.zip)
+
+For every even base \(B\ge2\), the development proves that a finite-valued \(B\)-automatic sequence invariant under the shortcut Collatz map is constant on all positive integers.
+
+The structural ingredient is base-factor descent:
+
+\[
+(2^s m)\text{-automatic}\Longrightarrow m\text{-automatic}
+\]
+
+under doubling invariance, where \(m\) is the odd part of \(B\).
+
+If \(m=1\), the proof descends to ARC2. If \(m>1\), the bases \(B\) and \(m\) are multiplicatively independent, so Cobham's theorem gives ultimate periodicity; a base-independent period-collapse argument then gives positive-domain constancy.
+
+In Lean, Cobham's theorem is supplied as the explicit theorem parameter ARCCobhamPrinciple; it is not registered as a custom global axiom.
 
 ---
 
@@ -78,36 +97,15 @@ The main ARC5 route does **not** use Cobham's theorem.
 
 - [ARC2 Lean 4 source archive](lean/ARC2/ARC2_Lean4_Source.zip)
 - [ARC3 + ARC5 Lean 4 source archive](lean/ARC3_ARC5_Lean4_Source.zip)
+- [ARC7 Lean 4 source archive](lean/ARC7/ARC7_Lean4_Source.zip)
+- [All-even-base Lean 4 source archive](lean/ARC_EvenBase/ARC_EvenBase_Lean4_Source.zip)
 - [Lean release notes](lean/README.md)
 
-The ARC2 source archive is the original public ARC2 archive, moved without changing its binary content.
+The ARC7 archive contains the active Stage 1-14 chain together with ARC7Final.lean, ARC7Audit_v2.lean, and ARC7Sharpness_v3.lean.
 
-The ARC3/ARC5 public source archive was prepared from the verified local Lean project tree rather than reconstructed from isolated theorem files. This is important because ARC3 uses shared automaticity bridge modules and ARC5 has a long staged dependency chain.
+The all-even-base archive contains the base-factor-descent Stage 1-9 chain together with ARCBaseFactorDescentFinalAudit.lean.
 
-The cleaned ARC3/ARC5 release archive contains the project metadata required for reconstruction (`lean-toolchain`, `lakefile.toml`, `lake-manifest.json`) together with the ARC source tree and a source-file manifest.
-
-Representative ARC3 files include:
-
-- `ARC3KernelTransfer.lean`
-- `ARC3Main.lean`
-- `ARC3Audit.lean`
-- `ARC3Consequences.lean`
-
-Representative ARC5 files culminate in:
-
-- `ARC5Stage5W_PositiveRigidity_v2.lean`
-- `ARC5Final.lean`
-
-The final ARC5 theorem has the form
-
-```lean
-theorem arc5_final
-    {α : Type u}
-    (a : ℕ → α)
-    (hinv : ∀ n : ℕ, a (arcShortcutNat n) = a n)
-    (ha5 : ARCAutomaticByKernel 5 a) :
-    ∃ c : α, ∀ n : ℕ, 0 < n → a n = c
-```
+Principal endpoints include arc7_final and arc_evenBase_final_of_cobham.
 
 Lean verification checks the formal proof as encoded. It does not by itself establish literature novelty, nor does it replace mathematical scrutiny of definitions, imported assumptions, and model choices.
 
@@ -115,68 +113,55 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
 
 ## Repository structure
 
-```text
-ARC-Collatz/
-├─ README.md
-├─ papers/
-│  ├─ ARC2/
-│  │  ├─ README.md
-│  │  ├─ ARC2_English.pdf
-│  │  └─ ARC2_Japanese.pdf
-│  ├─ ARC3/
-│  │  ├─ README.md
-│  │  ├─ ARC3_English.pdf
-│  │  └─ ARC3_Japanese.pdf
-│  └─ ARC5/
-│     ├─ README.md
-│     ├─ ARC5_English.pdf
-│     └─ ARC5_Japanese.pdf
-└─ lean/
-   ├─ README.md
-   ├─ ARC2/
-   │  ├─ README.md
-   │  └─ ARC2_Lean4_Source.zip
-   ├─ ARC3/
-   ├─ ARC5/
-   └─ ARC3_ARC5_Lean4_Source.zip
-```
-
-The `lean/ARC3/` and `lean/ARC5/` directories contain release notes; the reproducible combined ARC3/ARC5 Lean tree is distributed in the combined source archive above.
+    ARC-Collatz/
+    ├─ README.md
+    ├─ papers/
+    │  ├─ ARC2/
+    │  ├─ ARC3/
+    │  ├─ ARC5/
+    │  ├─ ARC7/
+    │  └─ ARC_EvenBase/
+    └─ lean/
+       ├─ README.md
+       ├─ ARC2/
+       ├─ ARC3/
+       ├─ ARC5/
+       ├─ ARC7/
+       ├─ ARC_EvenBase/
+       └─ ARC3_ARC5_Lean4_Source.zip
 
 ---
 
 ## Relationship to the Collatz conjecture
 
-ARC3 and ARC5 are rigidity results for automatic sequences constrained by Collatz invariance.
+ARC2, ARC3, ARC5, ARC7, and the all-even-base theorem are rigidity results for automatic sequences constrained by shortcut-Collatz invariance.
 
 They should be viewed as structural results around the Collatz problem rather than as proofs of the Collatz conjecture itself.
 
-One consequence considered in the papers is that characteristic sequences of certain Collatz-invariant sets would be severely constrained if they were automatic in the relevant base. Such reformulations help identify where automaticity can and cannot occur, but they do not settle the global Collatz conjecture.
-
 ---
 
-## ARC3 and ARC5 at a glance
+## Results at a glance
 
-| Item | ARC3 | ARC5 |
-|---|---|---|
-| Automatic base | 3 | 5 |
-| Main bridge | 3-kernel to 2-kernel | Local synchronization to dyadic thinness |
-| Finite-state step | Cobham / eventual periodicity | Base-5 pumping / finite support |
-| Endgame | Period elimination | Finite change set to eventual constancy |
-| Cobham theorem | External assumption | Not used in the main route |
-| Conclusion | Constant on positive integers | Constant on positive integers |
+| Result | Automatic base(s) | Main mechanism | Cobham in main route | Conclusion |
+|---|---|---|---|---|
+| ARC2 | 2 | base-2 rigidity | explicit external principle | constant on positive integers |
+| ARC3 | 3 | kernel transfer to base 2 | explicit external principle | constant on positive integers |
+| ARC5 | 5 | local synchronization + dyadic pumping | no | constant on positive integers |
+| ARC7 | 7 | doubled-loop pumping + dyadic filling | no | constant on positive integers |
+| Even-base ARC | every even \(B\ge2\) | base-factor descent + odd-part split | yes for the non-pure branch | constant on positive integers |
 
 ---
 
 ## Current status
 
-- ARC2: original English/Japanese manuscripts and Lean archive retained in organized release directories.
-- ARC3: English and Japanese Lean-verified manuscripts released.
-- ARC5: English and Japanese manuscripts released.
-- Lean 4: ARC2 archive plus cleaned ARC3 + ARC5 source archive released.
-- Further bases and a more general ARC framework are planned as later investigations.
+- ARC2: public release organized.
+- ARC3: English/Japanese manuscripts and Lean development released.
+- ARC5: English/Japanese manuscripts and Lean development released.
+- ARC7: English/Japanese manuscripts, Lean Stage 1-14 chain, final theorem, audit, and sharpness prepared for release.
+- All-even-base ARC: English/Japanese submission-style manuscripts, Lean Stage 1-9 chain, and independent final audit prepared for release.
+- Next planned stress test: odd composite bases, beginning with ARC15.
 
-Before treating the mathematical program as closed, the project continues to emphasize adversarial review of the Lean dependency chain, explicit axiom/dependency audits, definition-level checking, and separate literature/novelty auditing.
+The project continues to emphasize adversarial review of the Lean dependency chain, explicit axiom/dependency audits, definition-level checking, and separate literature/novelty auditing.
 
 ---
 
@@ -185,7 +170,7 @@ Before treating the mathematical program as closed, the project continues to emp
 **Author:** Muteki  
 Independent Researcher (Japan)
 
-Generative AI, including OpenAI ChatGPT, was used as a research and drafting aid for mathematical exploration, Lean development, proof checking, manuscript preparation, and repository organization.
+Generative AI, including OpenAI ChatGPT, was used as a research and drafting aid for mathematical exploration, Lean development, proof checking, manuscript preparation, literature-search assistance, and repository organization.
 
 The AI system is not listed as an author or bibliographic source. Responsibility for the released material remains with the human author.
 
@@ -193,7 +178,7 @@ The AI system is not listed as an author or bibliographic source. Responsibility
 
 ## License / reuse
 
-No explicit open-source or document license is asserted here unless a separate `LICENSE` file is added to the repository.
+No explicit open-source or document license is asserted here unless a separate LICENSE file is added to the repository.
 
 If you wish to reuse substantial portions of the manuscript or Lean source, please check the repository license status first and cite the project appropriately.
 
