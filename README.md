@@ -18,7 +18,7 @@ The central question is how strongly Collatz invariance constrains sequences tha
 
 > If a finite-alphabet sequence is automatic in base \(b\) and is invariant under the shortcut Collatz map, must it be constant on the positive integers?
 
-The repository contains ARC2, ARC3, ARC5, ARC7, and the all-even-base base-factor-descent development.
+The repository contains ARC2, ARC3, ARC5, ARC7, ARC15, and the all-even-base base-factor-descent development.
 
 **Important:** this project does **not** claim to prove the Collatz conjecture.
 
@@ -70,6 +70,25 @@ which restores exact dyadic control. The proof then passes through dyadic residu
 
 The ARC7 main proof does **not** use Cobham's theorem. The value at zero remains genuinely free, and this sharpness is formalized in Lean.
 
+### ARC15 — base 15
+
+- [English paper (PDF)](papers/ARC15/ARC15_English.pdf)
+- [Japanese paper / 日本語版 (PDF)](papers/ARC15/ARC15_Japanese.pdf)
+- [ARC15 paper directory](papers/ARC15/)
+- [ARC15 Lean 4 source archive](lean/ARC15/ARC15_Lean4_Source.zip)
+
+ARC15 proves positive-domain constancy for 15-automatic shortcut-Collatz-invariant sequences.
+
+This case is an odd-composite stress test: 15 = 3 × 5, but 15-automaticity does not in general imply 3-automaticity or 5-automaticity, so ARC15 is not a formal consequence of ARC3 and ARC5. The main route uses doubled-loop pumping with
+
+\[
+15^{2L}\equiv1\pmod 8,
+\]
+
+an exact two-adic valuation identity for the associated geometric sums, dyadic residue permutation and child filling, topological pumping, finiteness of the adjacent-change set, eventual constancy, and propagation by doubling invariance.
+
+The ARC15 main proof does **not** use Cobham's theorem. The value at zero remains genuinely free, and this sharpness is formalized in Lean.
+
 ### All even bases — base-factor descent
 
 - [English paper (PDF)](papers/ARC_EvenBase/ARC_EvenBase_English.pdf)
@@ -98,14 +117,17 @@ In Lean, Cobham's theorem is supplied as the explicit theorem parameter ARCCobha
 - [ARC2 Lean 4 source archive](lean/ARC2/ARC2_Lean4_Source.zip)
 - [ARC3 + ARC5 Lean 4 source archive](lean/ARC3_ARC5_Lean4_Source.zip)
 - [ARC7 Lean 4 source archive](lean/ARC7/ARC7_Lean4_Source.zip)
+- [ARC15 Lean 4 source archive](lean/ARC15/ARC15_Lean4_Source.zip)
 - [All-even-base Lean 4 source archive](lean/ARC_EvenBase/ARC_EvenBase_Lean4_Source.zip)
 - [Lean release notes](lean/README.md)
 
 The ARC7 archive contains the active Stage 1-14 chain together with ARC7Final.lean, ARC7Audit_v2.lean, and ARC7Sharpness_v3.lean.
 
+The ARC15 archive contains the active base-15 proof chain together with ARC15Final.lean, ARC15Audit.lean, and ARC15Stage6_Sharpness.lean.
+
 The all-even-base archive contains the base-factor-descent Stage 1-9 chain together with ARCBaseFactorDescentFinalAudit.lean.
 
-Principal endpoints include arc7_final and arc_evenBase_final_of_cobham.
+Principal endpoints include arc7_final, arc15_final, and arc_evenBase_final_of_cobham.
 
 Lean verification checks the formal proof as encoded. It does not by itself establish literature novelty, nor does it replace mathematical scrutiny of definitions, imported assumptions, and model choices.
 
@@ -120,6 +142,7 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
     │  ├─ ARC3/
     │  ├─ ARC5/
     │  ├─ ARC7/
+    │  ├─ ARC15/
     │  └─ ARC_EvenBase/
     └─ lean/
        ├─ README.md
@@ -127,6 +150,7 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
        ├─ ARC3/
        ├─ ARC5/
        ├─ ARC7/
+       ├─ ARC15/
        ├─ ARC_EvenBase/
        └─ ARC3_ARC5_Lean4_Source.zip
 
@@ -134,7 +158,7 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
 
 ## Relationship to the Collatz conjecture
 
-ARC2, ARC3, ARC5, ARC7, and the all-even-base theorem are rigidity results for automatic sequences constrained by shortcut-Collatz invariance.
+ARC2, ARC3, ARC5, ARC7, ARC15, and the all-even-base theorem are rigidity results for automatic sequences constrained by shortcut-Collatz invariance.
 
 They should be viewed as structural results around the Collatz problem rather than as proofs of the Collatz conjecture itself.
 
@@ -148,6 +172,7 @@ They should be viewed as structural results around the Collatz problem rather th
 | ARC3 | 3 | kernel transfer to base 2 | explicit external principle | constant on positive integers |
 | ARC5 | 5 | local synchronization + dyadic pumping | no | constant on positive integers |
 | ARC7 | 7 | doubled-loop pumping + dyadic filling | no | constant on positive integers |
+| ARC15 | 15 | doubled-loop pumping + exact dyadic valuation/filling | no | constant on positive integers |
 | Even-base ARC | every even \(B\ge2\) | base-factor descent + odd-part split | yes for the non-pure branch | constant on positive integers |
 
 ---
@@ -159,7 +184,8 @@ They should be viewed as structural results around the Collatz problem rather th
 - ARC5: English/Japanese manuscripts and Lean development released.
 - ARC7: English/Japanese manuscripts, Lean Stage 1-14 chain, final theorem, audit, and sharpness prepared for release.
 - All-even-base ARC: English/Japanese submission-style manuscripts, Lean Stage 1-9 chain, and independent final audit prepared for release.
-- Next planned stress test: odd composite bases, beginning with ARC15.
+- ARC15: English/Japanese manuscripts, complete Lean proof chain, final theorem, automaticity audit, and zero-sharpness theorem released.
+- Next planned direction: General ARC, beginning with a separate general odd-base development.
 
 The project continues to emphasize adversarial review of the Lean dependency chain, explicit axiom/dependency audits, definition-level checking, and separate literature/novelty auditing.
 

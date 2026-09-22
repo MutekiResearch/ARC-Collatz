@@ -1,6 +1,6 @@
 # Lean 4 formalization
 
-This directory contains the public Lean 4 release material for ARC2, ARC3, ARC5, ARC7, and the all-even-base base-factor-descent development.
+This directory contains the public Lean 4 release material for ARC2, ARC3, ARC5, ARC7, ARC15, and the all-even-base base-factor-descent development.
 
 ## ARC2 source archive
 
@@ -32,6 +32,21 @@ Principal endpoints include arc7_final, arc7_main_zero_digit_standard_msd_form, 
 
 The ARC7 main proof does not invoke ARCCobhamPrinciple.
 
+## ARC15 source archive
+
+- [ARC15/ARC15_Lean4_Source.zip](ARC15/ARC15_Lean4_Source.zip)
+- [ARC15 release notes](ARC15/README.md)
+
+The ARC15 archive contains the active base-15 proof chain together with:
+
+- ARC15Final.lean
+- ARC15Audit.lean
+- ARC15Stage6_Sharpness.lean
+
+Principal endpoints include arc15_final, arc15_main_zero_digit_standard_msd_form, and arc15_zero_value_is_genuinely_free.
+
+The ARC15 main proof does not invoke ARCCobhamPrinciple.
+
 ## All-even-base source archive
 
 - [ARC_EvenBase/ARC_EvenBase_Lean4_Source.zip](ARC_EvenBase/ARC_EvenBase_Lean4_Source.zip)
@@ -51,4 +66,4 @@ The active developments were checked stage by stage by standalone lake env lean 
 
 For the principal final endpoints and audits, the reported dependencies are standard Lean/Mathlib axioms such as propext, Classical.choice, and Quot.sound.
 
-No sorryAx occurs in the successful final ARC7 or all-even-base chains.
+No sorryAx occurs in the successful final ARC7, ARC15, or all-even-base chains.
