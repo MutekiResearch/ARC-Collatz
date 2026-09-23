@@ -4,10 +4,13 @@
 
 This directory contains the new independent Full General ARC release that removes the final explicit Cobham dependency from the integrated all-base proof.
 
-- [English paper](ARC_FullGeneral_NoCobham_English.pdf)
+- [English paper — expanded 9-page version](ARC_FullGeneral_NoCobham_English.pdf)
+- [English LaTeX source](ARC_FullGeneral_NoCobham_English.tex)
 - [Japanese paper / 日本語版](ARC_FullGeneral_NoCobham_Japanese.pdf)
 
 The earlier ARC papers are intentionally retained and are not superseded or withdrawn. This release records a later strengthening of the proof architecture.
+
+The expanded English manuscript gives a full paper-length account of the Cobham-free ARC2 reconstruction, the dyadic thinness argument, the finite-change mechanism, the all-base closure, and the independent Lean final audit. The PDF is built from the LaTeX source included in this directory.
 
 ## Main result
 

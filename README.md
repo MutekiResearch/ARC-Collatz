@@ -115,13 +115,16 @@ In Lean, Cobham's theorem is supplied as the explicit theorem parameter ARCCobha
 
 **First released: September 23, 2026**
 
-- [English paper (PDF)](papers/ARC_FullGeneral_NoCobham/ARC_FullGeneral_NoCobham_English.pdf)
+- [English paper — expanded 9-page PDF](papers/ARC_FullGeneral_NoCobham/ARC_FullGeneral_NoCobham_English.pdf)
+- [English LaTeX source](papers/ARC_FullGeneral_NoCobham/ARC_FullGeneral_NoCobham_English.tex)
 - [Japanese paper / 日本語版 (PDF)](papers/ARC_FullGeneral_NoCobham/ARC_FullGeneral_NoCobham_Japanese.pdf)
 - [Paper directory](papers/ARC_FullGeneral_NoCobham/)
 - [Lean 4 source archive](lean/ARC_FullGeneral_NoCobham_Lean4_Source.zip)
 - [Lean release notes](lean/ARC_FullGeneral_NoCobham/README.md)
 
 This is a new release in the ARC series; it does **not** replace the earlier papers, which are retained as historical stages of the development.
+
+The expanded English paper provides the full proof architecture rather than only a short release note: it develops the Cobham-free ARC2 reconstruction, dyadic thinness, finite-change propagation, the pure/mixed/odd base split, and the final Lean audit in detail.
 
 For every base \(B\ge2\), the development proves that every base-\(B\) finite-kernel automatic coloring invariant under the shortcut Collatz map is constant on all positive integers.
 

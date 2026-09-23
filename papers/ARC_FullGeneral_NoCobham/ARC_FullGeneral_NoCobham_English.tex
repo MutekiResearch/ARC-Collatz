@@ -1,0 +1,656 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Nzero}{\mathbb{N}_0}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\cpath}[1]{\path{#1}}
+\newcommand{\ARCKernel}{\mathcal{K}}
+\newcommand{\Change}{\mathcal{D}}
+
+\title{\textbf{Cobham-Free Full General Automatic Rigidity\\
+for Collatz-Invariant Sequences}\\[0.4em]
+\large Removing the Final External Cobham Dependency in the ARC Program}
+
+\author{Muteki\\
+Independent Researcher, Japan}
+
+\date{\textbf{First released: September 23, 2026}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We study finite-kernel automatic colorings of the nonnegative integers that are
+invariant under the shortcut Collatz map
+\[
+T(n)=
+\begin{cases}
+n/2, & n\equiv 0\pmod 2,\\[2mm]
+(3n+1)/2, & n\equiv 1\pmod 2.
+\end{cases}
+\]
+Earlier stages of the ARC (Automatic Rigidity for Collatz) program established
+positive-domain rigidity for several individual bases, then for every odd base,
+and finally for all bases under an explicit Cobham-theorem handoff localized to
+the base-$2$ / pure-power-of-two branch.  The present paper removes that final
+external dependency.
+
+The key new step is a Cobham-free reconstruction of ARC2.  For a base-$2$
+finite-kernel automatic invariant coloring $a$, we pass to the odd subsequence
+$b(n)=a(2n+1)$.  Existing ARC2 kernel arithmetic makes $b$ base-$3$
+finite-kernel automatic.  Instead of applying Cobham's theorem to obtain
+ultimate periodicity, local-density machinery developed later in the ARC
+program shows that the adjacent-change set of $b$ is dyadically nowhere thick.
+The General Odd ARC topological-pumping theorem then forces that change set to
+be finite.  Hence $b$ is eventually constant, and the recurrence
+$b(4n+2)=b(n)$ propagates the tail value to every index.  Doubling invariance
+then recovers constancy of $a$ on all positive integers.
+
+Combining this new ARC2 theorem with odd-base rigidity and base-factor descent
+yields a single theorem for every base $B\ge 2$, with no explicit
+\texttt{ARCCobhamPrinciple} hypothesis and no \texttt{[Finite alpha]}
+typeclass assumption.  The Lean 4 formalization was independently re-derived
+in a final audit; the final dependency report contains only
+\texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound}, with no
+\texttt{sorryAx}.  The integrated project completed \texttt{lake build}
+successfully with 8906 jobs.
+\end{abstract}
+
+\section{Introduction}
+
+Automatic sequences provide a natural finite-state lens through which to study
+arithmetic dynamics.  The ARC program asks a deliberately restricted question:
+if a finite-state coloring is invariant along every edge of the shortcut
+Collatz graph, how much freedom can remain?
+
+Let
+\[
+T(2n)=n,\qquad T(2n+1)=3n+2,
+\]
+which is equivalent on odd inputs to $(3m+1)/2$.  A coloring
+$a:\Nzero\to\alpha$ is called \emph{shortcut-Collatz invariant} if
+\[
+a(T(n))=a(n)\qquad(n\in\Nzero).
+\]
+The ARC objective is not to prove the Collatz conjecture.  Rather, it is to
+show that a broad class of finite-state invariants is too rigid to distinguish
+positive integers.
+
+The earlier development proceeded through increasingly general cases.
+ARC2 and ARC3 used kernel transfer together with an explicit external form of
+Cobham's theorem.  ARC5 and ARC7 introduced local synchronization, dyadic
+thinness, pumping, and finite-change arguments.  ARC15 stress-tested the method
+at an odd composite base.  These ideas were then generalized to every odd
+base.  Base-factor descent subsequently reduced every mixed even base
+$B=2^s m$ with odd $m>1$ to its odd part.
+
+At that point, the only remaining explicit Cobham dependency in the integrated
+all-base theorem was the pure power-of-two branch $B=2^s$, because factor
+descent sends this branch to base $2$, and the old ARC2 endpoint still passed
+through Cobham.
+
+The purpose of the present paper is to close precisely that gap.
+
+\begin{theorem}[Cobham-free Full General ARC]\label{thm:main}
+Let $B\ge2$ and let $a:\Nzero\to\alpha$ have finite base-$B$ kernel.
+Assume
+\[
+a(T(n))=a(n)\qquad(n\in\Nzero).
+\]
+Then there exists $c\in\alpha$ such that
+\[
+a(n)=c\qquad(n>0).
+\]
+\end{theorem}
+
+The value at zero is not determined; this is sharp.
+
+The proof has three layers:
+\begin{enumerate}[label=(\roman*)]
+\item reconstruct ARC2 without Cobham;
+\item use that reconstruction to close every pure power-of-two base;
+\item combine the pure-power branch with the already Cobham-free odd and mixed
+      even branches.
+\end{enumerate}
+
+\section{Finite-kernel automaticity and shortcut invariance}
+
+For a base $b\ge2$, define the $b$-kernel of a sequence $a:\Nzero\to\alpha$ by
+\[
+\ARCKernel_b(a)
+=
+\left\{
+n\longmapsto a(b^e n+r)
+:
+e\ge0,\ 0\le r<b^e
+\right\}.
+\]
+We use the finite-kernel condition
+\[
+\ARCKernel_b(a)\ \text{is finite}
+\]
+as the formal notion of base-$b$ automaticity.  This is the interface used by
+the principal Lean theorems.
+
+Shortcut invariance immediately yields the branch identities
+\begin{equation}\label{eq:branches}
+a(2n)=a(n),
+\qquad
+a(2n+1)=a(3n+2).
+\end{equation}
+The first identity is especially important: for every $k\ge0$,
+\begin{equation}\label{eq:doubling}
+a(2^k n)=a(n).
+\end{equation}
+
+Equation \eqref{eq:doubling} is the source of both factor descent and the final
+propagation of eventual constancy to all positive indices.
+
+\section{Where the old proof still used Cobham}
+
+Suppose the base is even.  Write
+\[
+B=2^s m,
+\qquad
+s>0,
+\qquad
+m\ \text{odd}.
+\]
+The ARC base-factor descent theorem shows that, under doubling invariance,
+\begin{equation}\label{eq:descent}
+(2^s m)\text{-finite-kernel automatic}
+\quad\Longrightarrow\quad
+m\text{-finite-kernel automatic}.
+\end{equation}
+
+If $m>1$, then $m\ge3$ is odd.  The completed General Odd ARC theorem already
+gives positive-domain constancy directly, so this branch is Cobham-free.
+
+The only unresolved case after localization was
+\[
+m=1,
+\qquad\text{i.e.}\qquad
+B=2^s.
+\]
+Applying \eqref{eq:descent} repeatedly reduces this branch to base $2$.
+Thus the all-base proof becomes Cobham-free as soon as ARC2 itself is
+reconstructed without Cobham.
+
+This observation is conceptually useful: the problem is not ``remove Cobham
+everywhere.''  By the time of the present work, the dependency had already been
+localized to one sharply identified endpoint.
+
+\section{Cobham-free reconstruction of ARC2}
+
+Let $a:\Nzero\to\alpha$ be base-$2$ finite-kernel automatic and
+shortcut-Collatz invariant.  Define the odd subsequence
+\begin{equation}\label{eq:bdef}
+b(n):=a(2n+1).
+\end{equation}
+
+The new proof does not try to prove that $b$ is shortcut-Collatz invariant.
+Instead, it extracts exactly the three properties needed for rigidity:
+base-$3$ finite-kernel automaticity, dyadic nowhere-thickness of the adjacent
+change set, and the self-similarity relation $b(4n+2)=b(n)$.
+
+\subsection{The odd subsequence is base 3 automatic}
+
+The original ARC2 arithmetic already contains the essential kernel transfer.
+Using \eqref{eq:branches}, every relevant base-$3$ decimation of the odd
+subsequence can be represented inside the finite base-$2$ kernel generated by
+$a$.  In particular,
+\[
+\ARCKernel_3(b)
+\]
+is finite.
+
+Formally, the old lower-level theorem
+\code{arc_three_kernel_odd_finite}
+is reused directly.  The new wrapper
+\[
+\code{arc2OddSubseq_threeAutomatic_of_twoAutomatic}
+\]
+works purely at finite-kernel level and avoids the unnecessary
+\code{[Finite alpha]} hypothesis carried by an older high-level interface.
+
+\begin{proposition}\label{prop:auto3}
+If $a$ has finite base-$2$ kernel and satisfies shortcut invariance, then
+$b(n)=a(2n+1)$ has finite base-$3$ kernel.
+\end{proposition}
+
+This is an important point in the formal architecture: no new arithmetic
+kernel-transfer theorem was needed.  What changed was the way the existing
+transfer theorem was connected to the later topological machinery.
+
+\subsection{The adjacent-change set is dyadically nowhere thick}
+
+Define
+\[
+\Change_b
+=
+\{n\in\Nzero : b(n)\ne b(n+1)\}.
+\]
+Since
+\[
+b(n)=a(2n+1),
+\qquad
+b(n+1)=a(2n+3),
+\]
+the equality $b(n)=b(n+1)$ is equivalent to
+\begin{equation}\label{eq:gap2}
+a(2n+1)=a(2n+3).
+\end{equation}
+
+The decisive new observation is that the local-density theorem for
+shortcut-invariant colorings can be applied with gap $H=2$.
+
+Informally, fix any dyadic parent cylinder
+\[
+n\equiv r\pmod{2^m}.
+\]
+Under the affine map $x=2n+1$, this becomes the odd dyadic cylinder
+\[
+x\equiv 2r+1\pmod{2^{m+1}}.
+\]
+The local-density theorem supplies a deeper subcylinder on which
+\[
+a(x)=a(x+2).
+\]
+Pulling this subcylinder back through $x=2n+1$ gives a deeper dyadic child in
+the original $n$-variable on which
+\[
+b(n)=b(n+1).
+\]
+Therefore that child contains no element of $\Change_b$.
+
+\begin{proposition}[Dyadic thinness]\label{prop:thin}
+For every dyadic parent cylinder there is a deeper dyadic child disjoint from
+$\Change_b$.  Equivalently, $\Change_b$ is dyadically nowhere thick.
+\end{proposition}
+
+In Lean this is established through
+\[
+\code{arc2OddSubseq_local_gap_two_child},
+\qquad
+\code{arc2OddSubseq_changeSet_nowhereThick},
+\]
+and packaged as
+\[
+\code{arc2CobhamRemoval_stage1_thinness}.
+\]
+
+This is the step that replaces the role previously played by Cobham's theorem.
+The old proof obtained global regularity through ultimate periodicity.
+The new proof obtains a different form of global control: automaticity plus
+dyadic topological thinness forces only finitely many adjacent changes.
+
+\subsection{Finite change set and eventual constancy}
+
+The General Odd ARC development proves the required topological-pumping
+principle for odd automatic bases.  Applied at base $3$, it says in the present
+setting that a base-$3$ finite-kernel automatic adjacent-change set that is
+dyadically nowhere thick must be finite.
+
+Combining Proposition~\ref{prop:auto3} and Proposition~\ref{prop:thin} gives
+\[
+\Change_b\ \text{finite}.
+\]
+Hence there exists $N$ such that
+\[
+b(n)=b(n+1)\qquad(n\ge N),
+\]
+and therefore $b$ is eventually constant.
+
+The relevant reusable General Odd ARC ingredients are the change-set
+automaticity, nowhere-thick-to-finite support theorem, and finite-change-to-tail
+constancy theorem.
+
+\subsection{Tail constancy propagates to every index}
+
+Shortcut invariance also gives the exact recurrence
+\begin{equation}\label{eq:bstep}
+b(4n+2)=b(n).
+\end{equation}
+Indeed,
+\[
+b(4n+2)
+=
+a(8n+5),
+\]
+and repeated use of the shortcut branch relations returns the value to
+$a(2n+1)=b(n)$.
+
+Now iterate the affine map
+\[
+\Phi(n)=4n+2.
+\]
+For every fixed $n$, the values
+\[
+n,\ \Phi(n),\ \Phi^2(n),\ldots
+\]
+grow without bound, while \eqref{eq:bstep} preserves the color.  Thus, once an
+iterate lies beyond the eventual-constancy threshold,
+\[
+b(n)=c.
+\]
+So $b$ is constant on all of $\Nzero$.
+
+Finally, every positive integer can be written as
+\[
+n=2^k q
+\]
+with $q$ odd.  By \eqref{eq:doubling},
+\[
+a(n)=a(q),
+\]
+and $a(q)$ is a value of the odd subsequence $b$.  Hence $a$ is constant on all
+positive integers.
+
+\begin{theorem}[Cobham-free ARC2]\label{thm:arc2}
+Let $a:\Nzero\to\alpha$ have finite base-$2$ kernel and satisfy shortcut
+invariance.  Then there exists $c\in\alpha$ such that
+\[
+a(n)=c\qquad(n>0).
+\]
+\end{theorem}
+
+The principal Lean endpoint is
+\[
+\code{arc2_main_kernel_form_no_cobham},
+\]
+with stage wrapper
+\[
+\code{arc2CobhamRemoval_stage2_final}.
+\]
+
+\section{Closing every base}
+
+With Theorem~\ref{thm:arc2} available, the last missing branch of the general
+argument becomes elementary.
+
+\begin{proposition}[Pure powers of two]\label{prop:pure}
+Let
+\[
+B=2^s,\qquad s>0.
+\]
+If $a$ is base-$B$ finite-kernel automatic and shortcut-Collatz invariant,
+then $a$ is constant on the positive integers.
+\end{proposition}
+
+\begin{proof}
+Write $s=t+1$.  Base-factor descent gives base-$2$ finite-kernel automaticity.
+Apply Theorem~\ref{thm:arc2}.
+\end{proof}
+
+In Lean, this is separated into
+\[
+\code{arc_powTwoSucc_final_no_cobham}
+\]
+and
+\[
+\code{arc_powTwoBase_final_no_cobham}.
+\]
+
+\begin{proposition}[Mixed even bases]\label{prop:mixed}
+Let
+\[
+B=2^s m,
+\qquad
+s>0,
+\qquad
+m>1\ \text{odd}.
+\]
+If $a$ is base-$B$ finite-kernel automatic and shortcut-Collatz invariant,
+then $a$ is constant on the positive integers.
+\end{proposition}
+
+\begin{proof}
+Factor descent gives finite base-$m$ kernel.  Since $m\ge3$ is odd, apply the
+General Odd ARC theorem.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+If $B$ is odd, then $B\ge3$ and General Odd ARC applies directly.
+
+If $B$ is even, factor
+\[
+B=2^s m
+\]
+with $s>0$ and $m$ odd.  If $m=1$, use
+Proposition~\ref{prop:pure}.  If $m>1$, use
+Proposition~\ref{prop:mixed}.  These cases exhaust all $B\ge2$.
+\end{proof}
+
+The packaged Lean endpoint is
+\[
+\code{arc_full_general_no_cobham}.
+\]
+
+\section{Lean 4 formalization}
+
+The Cobham-removal layer was developed conservatively: each stage was checked
+standalone, integrated into the root import graph, and followed by a project
+build before proceeding.
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.16}
+\begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}X p{0.24\textwidth}@{}}
+\toprule
+\textbf{File} & \textbf{Role} & \textbf{Principal endpoint}\\
+\midrule
+
+\texttt{ARC2CobhamRemoval}\newline\texttt{Stage0.lean}
+&
+Odd-subsequence packaging, recurrence extraction, eventual-to-global
+propagation, and recovery of positive-domain constancy.
+&
+\cpath{arc2OddSubseq_rigidity_of_threeAutomatic_and_thin}
+\\[0.7em]
+
+\texttt{ARC2CobhamRemoval}\newline\texttt{Stage1\_Thinness\_v3.lean}
+&
+Derives dyadic nowhere-thickness of the odd-subsequence adjacent-change set
+from shortcut invariance and local density.
+&
+\cpath{arc2CobhamRemoval_stage1_thinness}
+\\[0.7em]
+
+\texttt{ARC2CobhamRemoval}\newline\texttt{Stage2\_Final\_v2.lean}
+&
+Reconnects directly to the lower ARC2 finite-kernel transfer theorem and
+closes ARC2 without Cobham or \code{[Finite alpha]}.
+&
+\cpath{arc2CobhamRemoval_stage2_final}
+\\[0.7em]
+
+\texttt{ARC2CobhamRemoval}\newline\texttt{Stage3\_FullGeneral.lean}
+&
+Replaces the pure power-of-two branch, reassembles all even bases, and closes
+every base.
+&
+\cpath{arc_full_general_no_cobham}
+\\[0.7em]
+
+\texttt{ARCFullGeneralNoCobham}\newline\texttt{FinalAudit.lean}
+&
+Independently reconstructs the all-base theorem from lower-level components
+and runs representative smoke tests.
+&
+\cpath{arcFinalAudit_full_general_no_cobham}
+\\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Final audit}
+
+The final audit deliberately does not prove the all-base result by merely
+calling the packaged Stage-3 endpoint.  It reconstructs the three structural
+branches:
+\[
+\text{pure }2^s,
+\qquad
+\text{mixed even},
+\qquad
+\text{odd},
+\]
+from lower-level theorems.
+
+Representative concrete instances were checked at bases
+\[
+2,3,4,5,6,7,10,15,64,100.
+\]
+
+For the principal final theorems,
+\code{\#print axioms} reports
+\[
+\code{propext},
+\qquad
+\code{Classical.choice},
+\qquad
+\code{Quot.sound},
+\]
+and does not report \code{sorryAx}.  No explicit
+\code{ARCCobhamPrinciple} parameter occurs in the final theorem, and no
+\code{[Finite alpha]} typeclass assumption is required.
+
+After the final audit import was added to the root project, the command
+\[
+\code{lake build}
+\]
+completed successfully with \textbf{8906 jobs}.
+
+\begin{remark}[Scope of the formal audit]
+The Lean dependency report verifies the proof as encoded relative to the
+imported definitions and Mathlib environment.  It is not, by itself, an
+independent peer review of the mathematical modeling choices or a literature
+novelty certificate.
+\end{remark}
+
+\section{Relation to the earlier ARC papers}
+
+The present release is intentionally additive rather than substitutive.
+
+The earlier ARC papers are retained because they document the route by which
+the final architecture emerged:
+\begin{itemize}
+\item ARC2 contains the original base-$2$ kernel arithmetic and the first
+      rigidity route.
+\item ARC3 develops a complementary kernel-transfer case.
+\item ARC5 introduces local synchronization, dyadic thinness, and a
+      finite-change strategy.
+\item ARC7 develops doubled-loop pumping and dyadic filling.
+\item ARC15 stress-tests the mechanism at an odd composite base.
+\item General Odd ARC extracts the common odd-base structure.
+\item The all-even and first Full General integrations identify exactly where
+      the external Cobham handoff remained.
+\end{itemize}
+
+The new proof feeds machinery developed later in the program back into ARC2.
+That feedback loop is the conceptual content of the present paper.
+
+Thus this work should not be described as correcting an error in the earlier
+papers.  The earlier theorems remain valid under their stated proof
+architectures.  The present result removes an external hypothesis from the
+integrated formal route and therefore strengthens the final theorem.
+
+\section{Sharpness at zero}
+
+The restriction to positive integers cannot be removed.
+
+\begin{proposition}\label{prop:zero}
+Let $x,y\in\alpha$ be arbitrary and define
+\[
+a(0)=x,
+\qquad
+a(n)=y\quad(n>0).
+\]
+Then $a$ is finite-kernel automatic in every base and shortcut-Collatz
+invariant.
+\end{proposition}
+
+Consequently, the value at zero is genuinely free.  Theorem~\ref{thm:main}
+is sharp in its domain of constancy.
+
+For Boolean colorings, Theorem~\ref{thm:main} may equivalently be read as a
+rigidity statement for automatic invariant subsets of $\Nzero$: on the
+positive integers, such a set is either empty or all of $\N_{>0}$, while
+membership of zero remains independent.
+
+\section{What the theorem does not say}
+
+It is important to separate the ARC theorem from the Collatz conjecture itself.
+
+Theorem~\ref{thm:main} says that a finite-kernel automatic coloring cannot
+provide a nontrivial positive-domain invariant of the shortcut Collatz map.
+It does not assert that every Collatz orbit reaches $1$, nor does it rule out
+all conceivable invariants.  In particular, arbitrary nonautomatic or
+infinite-state colorings lie outside the theorem's hypotheses.
+
+Similarly, removing Cobham from the present proof does not diminish the
+importance of Cobham's theorem in automatic-sequence theory.  The result is
+specific to the additional arithmetic and dynamical structure supplied by
+shortcut-Collatz invariance.
+
+\section{Release note}
+
+\textbf{First released: September 23, 2026.}
+
+Earlier ARC papers are not superseded or withdrawn.  They are retained as
+historical stages of the development.  The present paper is added as a new
+release documenting the Cobham-free closure of the Full General ARC theorem.
+
+\section*{Acknowledgment of AI assistance}
+
+OpenAI ChatGPT (GPT-5.6 Sol) was used as a research and drafting aid for
+mathematical exploration, theorem organization, Lean 4 code development and
+debugging, formal dependency auditing, manuscript preparation, and repository
+organization.  The AI system is not an author or bibliographic source.
+Responsibility for the released mathematical claims, formalization, references,
+and wording remains with the human author.
+
+\begin{thebibliography}{9}
+
+\bibitem{AlloucheShallit}
+J.-P. Allouche and J. Shallit,
+\emph{Automatic Sequences: Theory, Applications, Generalizations},
+Cambridge University Press, 2003.
+
+\bibitem{Cobham1969}
+A. Cobham,
+On the base-dependence of sets of numbers recognizable by finite automata,
+\emph{Mathematical Systems Theory} \textbf{3} (1969), 186--192.
+
+\bibitem{Eilenberg}
+S. Eilenberg,
+\emph{Automata, Languages, and Machines, Vol. A},
+Academic Press, 1974.
+
+\end{thebibliography}
+
+\end{document}
