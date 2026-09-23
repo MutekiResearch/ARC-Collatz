@@ -243,3 +243,13 @@ If you wish to reuse substantial portions of the manuscript or Lean source, plea
 This repository is an independent mathematical research project. It is not an official publication of a university, company, or other institution.
 
 The results should be evaluated from the definitions, proofs, Lean sources, stated assumptions, and cited literature contained in each release.
+
+#### Post-release Independent Audit Note
+
+A separate supplementary audit note was added on September 23, 2026. It records adversarial checks of several delicate proof interfaces without modifying the immutable `full-general-arc-v1.0.0` release. It is **not** an erratum or corrigendum; no confirmed defect in the parent theorem is asserted.
+
+- [English Audit Note (PDF)](papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_English.pdf)
+- [Japanese Audit Note / 日本語版 (PDF)](papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_Japanese.pdf)
+- [English LaTeX](papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_English.tex)
+- [Japanese LaTeX](papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_Japanese.tex)
+

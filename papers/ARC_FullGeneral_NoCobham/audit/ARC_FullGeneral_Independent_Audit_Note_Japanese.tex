@@ -1,0 +1,352 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+\usepackage{luatexja-fontspec}
+\setmainjfont{Noto Serif CJK JP}
+\setsansjfont{Noto Sans CJK JP}
+\setmonojfont{Noto Sans Mono CJK JP}
+\usepackage[margin=24mm]{geometry}
+\usepackage{amsmath,amssymb,mathtools,amsthm}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Cobham非依存 Full General ARC に対する Independent Audit Note},
+  pdfauthor={Muteki}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Full General ARC - Independent Audit Note}
+\rhead{2026年9月23日}
+\cfoot{\thepage}
+\setlength{\headheight}{15pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \lhead{Full General ARC - Independent Audit Note}%
+  \rhead{2026年9月23日}%
+  \cfoot{\thepage}%
+}
+
+\newtheorem{proposition}{命題}[section]
+\newtheorem{remark}[proposition]{注意}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Nzero}{\mathbb{N}_0}
+\newcommand{\K}{\mathcal{K}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\code}[1]{\path{#1}}
+
+\title{\bfseries
+「Cobham 非依存 Full General Automatic Rigidity\\
+for Collatz-Invariant Sequences」に対する\\[5pt]
+Independent Audit Note\\[6pt]
+\large 異種基底 kernel transfer・dyadic thinness・topological pumping の敵対的再監査}
+
+\author{Muteki\\\small Independent Researcher, Japan}
+\date{\bfseries 2026年9月23日\\\small 公開後の補足監査ノート}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\begin{abstract}
+本ノートは、Cobham の明示的仮定を除いた Full General ARC 証明について、公開後に行った敵対的監査を記録するものである。監査の契機となったのは、(i) base-2 automatic な shortcut-Collatz 不変列から、その奇数部分列の base-3 automaticity を導く段階、(ii) 奇数部分列の change set が dyadically nowhere thick であることを導く段階、(iii) odd-base automatic な Boolean support が無限かつ dyadically nowhere thick ではあり得ないとする topological pumping 段階、の3点に論理的な飛躍があるのではないかという敵対的指摘である。さらに、Lean 4 の定理が前件空偽（vacuous truth）として成立しているだけではないか、という懸念も検討した。
+
+本ノートの時点で、公開済み定理の反例や確定した誤りは得られていない。第2の段階については、既証明の local-density theorem を $H=2$ で用い、$x=2n+1$ という affine 変換を通して dyadic child を明示的に引き戻す source-level の証明経路を確認した。第3の段階についても、odd-base pumping から dyadic residue permutation、child filling、nowhere-thickness との衝突へ進む専用の Lean 証明列が存在し、単なる異種基底間の直感的仮定ではないことを確認した。提案された ternary Cantor 型集合も、有限剰余計算では反例を支持しなかった。前件空偽の懸念は、仮定を実際に満たす明示的な列を構成することで否定できる。
+
+一方、第1の base-3 kernel transfer は、現在の Cobham-removal wrapper から下位定理 \code{arc_three_kernel_odd_finite} へ正しく接続されていることは確認できるが、その下位定理自体は以前の ARC2 開発に属する。そのため、本ノートとは独立に、定義から紙上で一行ずつ再導出することを今後の優先監査項目として残す。
+
+ここでいう ``Independent'' は、main theorem の packaged endpoint をそのまま信用せず別経路から監査するという意味であり、第三者による外部 peer review を意味しない。
+\end{abstract}
+
+\section{位置づけと目的}
+
+親論文が扱う shortcut Collatz map は
+\[
+T(n)=
+\begin{cases}
+ n/2, & n\equiv0\pmod 2,\\[2mm]
+ (3n+1)/2, & n\equiv1\pmod 2
+\end{cases}
+\]
+である。Full General ARC の主張は、任意の base $B\ge2$ に対し、$a:\Nzero\to\alpha$ が finite base-$B$ kernel を持ち、
+\[
+a(T(n))=a(n)\qquad(n\in\Nzero)
+\]
+を満たすならば、$a$ は正の整数上で定数になる、という剛性定理である。$n=0$ の値については自由度が残る。
+
+本ノートは完全な再証明ではなく、「もし定理が偽なら、どこが壊れる可能性が高いか」という観点から証明を攻撃する。特に次の4点を監査する。
+\begin{enumerate}[label=(A\arabic*)]
+\item base-2 finite-kernel structure と base-3 odd subsequence の橋渡し。
+\item shortcut-Collatz dynamics と $2$-adic cylinder の橋渡し。
+\item odd-base automaton と dyadic nowhere-thickness の橋渡し。
+\item Lean theorem が前件空偽によって成立していないか。
+\end{enumerate}
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{@{}p{0.23\textwidth}X p{0.19\textwidth}@{}}
+\toprule
+\textbf{監査対象} & \textbf{今回の確認結果} & \textbf{現在の判定}\\
+\midrule
+A1. 奇数部分列の base-3 finite-kernel automaticity
+& Active wrapper は、even branch・odd branch・finite base-2 kernel だけを入力として \code{arc_three_kernel_odd_finite} に接続している。未知の Collatz 収束仮説は wrapper や axiom audit に現れない。ただし下位定理そのものの独立な紙上再証明は今後も有益である。
+& 確定した欠陥なし。深掘り監査を継続。\\[0.8em]
+A2. change set の dyadic thinness
+& $H=2$ の local-density theorem を $x=2n+1$ に適用し、元の $n$-variable の dyadic child へ引き戻す構成が source 上に明示されている。
+& 証明経路を確認。\\[0.8em]
+A3. odd-base automatic + nowhere-thick $\Rightarrow$ finite support
+& dyadic residue permutation、child filling、nowhere-thickness との衝突を段階的に証明する専用 chain を確認した。
+& 人間による独立再導出の最優先項目。\\[0.8em]
+A4. Vacuous truth
+& 仮定を満たす explicit sequence が存在する。$0$ だけ別の値を持つ非全域定数列も構成可能。
+& 構成的に否定。\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Audit A1：奇数部分列の base-3 automaticity}
+
+$a:\Nzero\to\alpha$ を shortcut-Collatz 不変列とし、
+\[
+b(n)=a(2n+1)
+\]
+とおく。Cobham-free ARC2 では
+\[
+\K_2(a)\text{ finite}\quad\Longrightarrow\quad\K_3(b)\text{ finite}
+\]
+が必要になる。敵対的な疑問は、係数 $2$ と $3$ の干渉を繰り返すと residual state が無限に増え、実は Collatz 軌道の未知の有限性を暗黙に仮定しているのではないか、というものである。
+
+\subsection{Active wrapper が実際に使っている仮定}
+
+Stage 2 の active wrapper は shortcut invariance から
+\begin{align}
+a(2n)&=a(n),\\
+a(2n+1)&=a(3n+2)
+\end{align}
+を導き、さらに finite-kernel automaticity を展開して
+\[
+(\K_2(a)).\mathrm{Finite}
+\]
+を得る。その3つを下位定理
+\begin{center}\code{arc_three_kernel_odd_finite}\end{center}
+へ渡し、
+\[
+\left(\K_3\bigl(n\mapsto a(2n+1)\bigr)\right).\mathrm{Finite}
+\]
+を受け取る。公開 endpoint は
+\begin{center}\code{arc2OddSubseq_threeAutomatic_of_twoAutomatic}\end{center}
+である。
+
+また、保存されている axiom audit では \code{arc_three_kernel_odd_finite} の依存は
+\begin{center}\code{propext}, \code{Classical.choice}, \code{Quot.sound}\end{center}
+のみと報告されている。したがって、少なくとも active proof chain に「全 Collatz 軌道が有限パターンへ収束する」といった custom axiom が紛れ込んでいる形ではない。
+
+\subsection{ここまでで言えること／まだ言えないこと}
+
+この source trace によって、「Stage 2 が未知の Collatz 収束性を単に仮定している」という批判は支持されない。一方で、Lean dependency を追ったことと、下位定理の新しい人間向け証明を書き直したことは同義ではない。
+
+したがって、本監査の結論は次のように限定する。
+\begin{quote}
+Active transfer step に確定した欠陥は見つかっていない。ただし、\code{arc_three_kernel_odd_finite} を kernel の定義から独立に紙上再構成することは、今後の高優先度監査として残す。
+\end{quote}
+これは訂正事項ではなく、追加監査項目である。
+
+\section{Audit A2：奇数部分列 change set の dyadic thinness}
+
+\[
+\D_b=\{n\in\Nzero:b(n)\ne b(n+1)\}
+\]
+と定義する。ここでの敵対的疑問は、Collatz の奇数操作は係数 $3$ を含む一方、thinness は $2$ の冪による residue class で定義されているため、任意の dyadic parent の内部に empty child が存在する保証はないのではないか、というものである。
+
+\subsection{実際の affine pullback}
+
+Stage 1 の証明は「2進と3進が何となく相性がよい」と仮定していない。既に証明済みの local-density theorem
+\begin{center}\code{arc5_naturalInvariantBlock_in_dyadicCylinder}\end{center}
+を gap $H=2$ として明示的に使う。
+
+任意の parent
+\[
+n\equiv r\pmod{2^m}
+\]
+に対して
+\[
+x=2n+1
+\]
+と置くと
+\[
+x\equiv 2r+1\pmod{2^{m+1}}
+\]
+となる。local-density theorem はより深い dyadic child 上で
+\[
+a(x)=a(x+2)
+\]
+を与える。$x=2n+1$ を代入すれば
+\[
+a(2n+1)=a(2n+3),
+\]
+すなわち
+\[
+b(n)=b(n+1)
+\]
+である。source ではこの child を元の $n$-variable に引き戻し、元の parent の内部にあることも証明している。そのため、その child は $\D_b$ と交わらない。
+
+公開 endpoint は
+\begin{center}\code{arc2OddSubseq_changeSet_nowhereThick}\end{center}
+であり、
+\begin{center}\code{arc2CobhamRemoval_stage1_thinness}\end{center}
+として package されている。
+
+\subsection{A2 の監査結論}
+
+「base 2 と係数 3 は異種なので、child の存在は保証されない」という一般論だけでは active proof の欠陥を示せない。まさにその child の存在を示すために、以前の local-density chain が構築されているからである。
+
+今後さらに攻撃するなら、対象は「異種基底であること」そのものではなく、local-density theorem が shortcut invariance だけから正しく導かれているか、という下位算術へ移すべきである。
+
+\section{Audit A3：odd-base automatic support と dyadic nowhere-thickness}
+
+ここが今回の監査で最も重要な点である。General ARC には、odd base $q\ge3$ に対して、Boolean sequence が finite base-$q$ kernel を持ち、その support が dyadically nowhere thick なら support は有限になる、という定理がある。
+
+直感的には驚くべき主張である。automaton は base $q$ の digit を読み、thinness は $2$ の冪で測られるからである。したがって監査では、「この scale mismatch を本当に証明で埋めているのか」を確認した。
+
+\subsection{異種基底の橋は明示的に構築されている}
+
+General ARC の Stage 6--10 には次の chain がある。
+\begin{enumerate}[label=\arabic*.]
+\item \textbf{Dyadic residue permutation.} odd base の doubled-loop pumped family を $2^M$ で規格化し、その residue map の injectivity を証明する。同じ有限集合上の map なので surjectivity を得て、すべての residue modulo $2^M$ が hit される。
+\item \textbf{Dyadic child filling.} \code{arcGeneral_evenLoopPumpedFamily_hits_every_child_of_exact_two_factor} により、上の residue surjectivity を「任意の deeper dyadic child に pumped support point が入る」という statement に持ち上げる。
+\item \textbf{Nowhere-thickness との衝突.} \code{arcGeneral_child_filling_not_nowhereThick} は、thinness が empty と主張する child を取り、その同じ child に pumped support point を作って矛盾を導く。
+\item \textbf{Infinite support から long word.} Stage 9 は infinite automatic support から十分長い canonical support word を抽出し、Stage 8 の pumping collision へ渡す。
+\item \textbf{Finite-kernel interface.} Stage 10 は finite kernel を MSD-DFAO へ変換し、最終的に \code{arcGeneral_kernelAutomatic_nowhereThick_support_finite} を得る。
+\end{enumerate}
+
+したがって、base mismatch は無視されているのではなく、Stage 6--10 の中心的な算術対象になっている。
+
+\subsection{Cantor 型候補に対する有限計算}
+
+反例候補として自然なのは、base-3 表現に digit $0,1$ だけを許す集合
+\[
+C=\left\{\sum_{i\ge0}\varepsilon_i3^i:\varepsilon_i\in\{0,1\},\text{有限個のみ非零}\right\}
+\]
+である。これは infinite かつ base-3 automatic であり、3進的には疎に見える。
+
+有限版
+\[
+C_L=\left\{\sum_{i=0}^{L-1}\varepsilon_i3^i:\varepsilon_i\in\{0,1\}\right\}
+\]
+について residue modulo $2^m$ を全列挙したところ、下表の範囲では有限の $L$ ですでにすべての residue class を覆った。
+
+\begin{center}
+\small
+\begin{tabular}{@{}rrrrrrrrrr@{}}
+\toprule
+$m$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+\midrule
+確認された最小 $L$ & 1 & 3 & 4 & 5 & 7 & 8 & 9 & 11 & 12 \\
+\bottomrule
+\end{tabular}
+\end{center}
+$m=10$ でも確認された最小値は $L=12$ である。この計算は各 $L$ に対する residue set を完全列挙した有限計算であり、ランダムサンプリングではない。ただし全ての $m$ に対する数学的証明ではない。
+
+重要なのは、以前の有限 search で parent $0\pmod2$ 内に empty child を見つけられなかったという結果は、dyadic nowhere-thickness を支持する結果ではなく、むしろその逆方向の evidence だという点である。
+
+\subsection{A3 の監査結論}
+
+現時点で反例は得られていない。形式証明には odd-base pumping を dyadic child filling へ変換する専用 mechanism が存在する。しかし、この部分は ARC 全体でも数学的に最も非自明な橋の一つであるため、Lean の file order を見ずに、人間が residue permutation と child filling を最初から再構成する監査を最優先とするのが妥当である。
+
+\section{Audit A4：Vacuous Truth（前件空偽）の可能性}
+
+この懸念は構成的に否定できる。任意の $x,y\in\alpha$ に対し
+\[
+a(0)=x,\qquad a(n)=y\quad(n>0)
+\]
+と定義する。
+
+$T(0)=0$ であり、$n>0$ なら $T(n)>0$ なので
+\[
+a(T(n))=a(n)
+\]
+が全ての $n\ge0$ で成立する。さらに任意の base $B\ge2$ で、kernel residual は元の列 $a$ または定数列 $n\mapsto y$ のどちらかにしかならない。したがって base-$B$ kernel は高々2状態で有限である。
+
+$x\ne y$ とすれば、この列は $\Nzero$ 全体では非定数であるが、正の整数上では定数であり、Full General ARC の結論と一致する。よって、仮定を満たす対象が存在しないため Lean が前件空偽として定理を証明した、という可能性は成立しない。
+
+\section{本物の反例に必要な条件}
+
+Full General ARC を反証するには、「Collatz 軌道ごとに色を付ける」「疎な automatic set を考える」「even branch だけを満たす」といった構想だけでは不十分である。真の反例は、ある $B\ge2$ と $a:\Nzero\to\alpha$ を明示し、次の3条件を同時に満たさなければならない。
+\begin{enumerate}[label=(\roman*)]
+\item full base-$B$ kernel $\K_B(a)$ が有限である。
+\item 全ての $n\ge0$ で $a(T(n))=a(n)$ が成立する。
+\item 正の整数 $m,n$ が存在して $a(m)\ne a(n)$ となる。
+\end{enumerate}
+例えば未知の非自明 loop や発散 component ごとに色を付けられたとしても、それだけでは (i) の finite-kernel 性は全く保証されない。また
+\[
+a(2^kq)=a(q)
+\]
+という延長は even relation を保証するだけで、odd relation
+\[
+a(2n+1)=a(3n+2)
+\]
+を自動的には保証しない。
+
+\section{Lean 4 が保証すること／保証しないこと}
+
+完成した development では、project-wide build の成功、final endpoint における \code{sorryAx} 不在、明示的 \code{ARCCobhamPrinciple} argument の除去、final theorem における \code{[Finite alpha]} 不要化が確認されている。これは、形式定義と imported lemma の範囲で packaged theorem が Lean によって導出されていることを示す重要な evidence である。
+
+一方、formal verification 自体は次の作業を代替しない。
+\begin{itemize}
+\item formal definition が意図した数学概念を正確に表しているかの確認。
+\item imported lower lemma を独立の paper proof として再構成すること。
+\item 文献との重複・novelty の確認。
+\item 定理が意図しない別理由で真になっていないかの敵対的検査。
+\end{itemize}
+本ノートは特に最初の2点を意識した補足資料である。
+
+\section{現在の監査判定と今後の作業}
+
+今回の敵対的監査から、公開済み Full General ARC の確定した誤りは得られていない。一方で、次の監査優先順位が明確になった。
+\begin{enumerate}[label=\arabic*.]
+\item \textbf{A1：継続。} \code{arc_three_kernel_odd_finite} を kernel 定義から紙上で完全再導出する。
+\item \textbf{A2：source-level route を確認済み。} 次に攻撃すべき対象は affine pullback ではなく、その下の local-density theorem そのものである。
+\item \textbf{A3：最優先。} residue permutation と dyadic child filling を Lean の証明順序とは独立に再構成し、無限 odd-base automatic support の反例探索を続ける。
+\item \textbf{A4：終了。} vacuous truth は explicit witness により否定済み。
+\end{enumerate}
+
+したがって、本資料は \textbf{Independent Audit Note} であり、Erratum、Corrigendum、あるいは親論文の差し替えではない。将来、本物の誤りが確定した場合には、その時点で独立した correction document として透明に記録するのが適切である。
+
+\section*{再現性メモ}
+
+Cantor 型有限計算では、各 $L$ について
+\[
+C_L\bmod 2^m
+\]
+を、$\varepsilon_i\in\{0,1\}$ の全選択から exact set として構成し、各 power $3^i$ を追加するたびに residue set を圧縮した。表に示した最小 $L$ は、その指定 modulus に対して exhaustive に確認された値である。この計算は敵対的 sanity check のためのものであり、Lean proof には使用していない。
+
+\section*{AI 利用について}
+
+生成AIは、敵対的な反論候補の提示、proof architecture の点検、Lean source の追跡、有限計算、文書作成の補助に使用された。AI が提示した反論は、それ自体を数学的結果とは扱わず、独立に検証された内容だけを本ノートの結論として採用した。公開される数学的主張と形式化の解釈に対する責任は人間の著者にある。
+
+\begin{thebibliography}{9}
+\bibitem{Parent}
+Muteki,
+\emph{Cobham-Free Full General Automatic Rigidity for Collatz-Invariant Sequences},
+Full General ARC release v1.0.0, 2026年9月23日.
+
+\bibitem{AlloucheShallit}
+J.-P. Allouche and J. Shallit,
+\emph{Automatic Sequences: Theory, Applications, Generalizations},
+Cambridge University Press, 2003.
+
+\bibitem{Cobham}
+A. Cobham,
+On the base-dependence of sets of numbers recognizable by finite automata,
+\emph{Mathematical Systems Theory} \textbf{3} (1969), 186--192.
+\end{thebibliography}
+
+\end{document}

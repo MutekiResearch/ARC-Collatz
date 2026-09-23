@@ -1,0 +1,47 @@
+name: Build Full General ARC audit notes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_English.tex'
+      - 'papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_Japanese.tex'
+      - '.github/workflows/build-fullgeneral-audit-notes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-audit-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install LaTeX and Japanese fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             latexmk             texlive-latex-extra             texlive-fonts-recommended             texlive-luatex             texlive-lang-japanese             fonts-noto-cjk             fonts-noto-cjk-extra
+
+      - name: Build English PDF
+        working-directory: papers/ARC_FullGeneral_NoCobham/audit
+        run: |
+          latexmk -pdf -interaction=nonstopmode -halt-on-error ARC_FullGeneral_Independent_Audit_Note_English.tex
+
+      - name: Build Japanese PDF
+        working-directory: papers/ARC_FullGeneral_NoCobham/audit
+        run: |
+          lualatex -interaction=nonstopmode -halt-on-error ARC_FullGeneral_Independent_Audit_Note_Japanese.tex
+          lualatex -interaction=nonstopmode -halt-on-error ARC_FullGeneral_Independent_Audit_Note_Japanese.tex
+
+      - name: Commit generated PDFs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_English.pdf
+          git add papers/ARC_FullGeneral_NoCobham/audit/ARC_FullGeneral_Independent_Audit_Note_Japanese.pdf
+          if ! git diff --cached --quiet; then
+            git commit -m "Build Full General ARC audit-note PDFs"
+            git push
+          fi
