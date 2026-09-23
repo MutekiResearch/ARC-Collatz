@@ -60,6 +60,27 @@ The final audit independently re-derives the all-even conclusion without trustin
 
 ARCCobhamPrinciple is an explicit theorem parameter, not a custom global axiom.
 
+## Full General ARC — Cobham-free closure
+
+**First released:** 2026-09-23
+
+- [Source archive](ARC_FullGeneral_NoCobham_Lean4_Source.zip)
+- [Release notes](ARC_FullGeneral_NoCobham/README.md)
+
+This release contains the new Cobham-removal layer:
+
+- `ARC2CobhamRemovalStage0.lean`
+- `ARC2CobhamRemovalStage1_Thinness_v3.lean`
+- `ARC2CobhamRemovalStage2_Final_v2.lean`
+- `ARC2CobhamRemovalStage3_FullGeneral.lean`
+- `ARCFullGeneralNoCobhamFinalAudit.lean`
+
+Principal endpoints are `arc2CobhamRemoval_stage2_final`, `arc_full_general_no_cobham`, and `arcFinalAudit_full_general_no_cobham`.
+
+The final theorem has no explicit `ARCCobhamPrinciple` parameter, no `[Finite α]` typeclass assumption, and no `sorryAx`. Its axiom audit reports only standard Lean/Mathlib dependencies `propext`, `Classical.choice`, and `Quot.sound`. The final root build completed successfully with 8906 jobs.
+
+The archive is the Cobham-removal layer and imports shared ARC infrastructure from the larger development; see the release notes for the active chain.
+
 ## Verification note
 
 The active developments were checked stage by stage by standalone lake env lean runs followed by project-level lake build integration.

@@ -18,7 +18,7 @@ The central question is how strongly Collatz invariance constrains sequences tha
 
 > If a finite-alphabet sequence is automatic in base \(b\) and is invariant under the shortcut Collatz map, must it be constant on the positive integers?
 
-The repository contains ARC2, ARC3, ARC5, ARC7, ARC15, and the all-even-base base-factor-descent development.
+The repository contains ARC2, ARC3, ARC5, ARC7, ARC15, the all-even-base base-factor-descent development, and the Cobham-free Full General ARC closure.
 
 **Important:** this project does **not** claim to prove the Collatz conjecture.
 
@@ -110,6 +110,27 @@ If \(m=1\), the proof descends to ARC2. If \(m>1\), the bases \(B\) and \(m\) ar
 
 In Lean, Cobham's theorem is supplied as the explicit theorem parameter ARCCobhamPrinciple; it is not registered as a custom global axiom.
 
+
+### Full General ARC — Cobham-free closure
+
+**First released: September 23, 2026**
+
+- [English paper (PDF)](papers/ARC_FullGeneral_NoCobham/ARC_FullGeneral_NoCobham_English.pdf)
+- [Japanese paper / 日本語版 (PDF)](papers/ARC_FullGeneral_NoCobham/ARC_FullGeneral_NoCobham_Japanese.pdf)
+- [Paper directory](papers/ARC_FullGeneral_NoCobham/)
+- [Lean 4 source archive](lean/ARC_FullGeneral_NoCobham_Lean4_Source.zip)
+- [Lean release notes](lean/ARC_FullGeneral_NoCobham/README.md)
+
+This is a new release in the ARC series; it does **not** replace the earlier papers, which are retained as historical stages of the development.
+
+For every base \(B\ge2\), the development proves that every base-\(B\) finite-kernel automatic coloring invariant under the shortcut Collatz map is constant on all positive integers.
+
+The new proof removes the final explicit Cobham dependency from the integrated all-base theorem. Odd bases are handled by General Odd ARC; mixed even bases descend to their nontrivial odd part; pure powers of two descend to base 2 and use the new Cobham-free ARC2 reconstruction.
+
+The principal Lean endpoints are `arc_full_general_no_cobham` and the independently reconstructed audit endpoint `arcFinalAudit_full_general_no_cobham`. Their axiom audits report only `propext`, `Classical.choice`, and `Quot.sound`; no `sorryAx` occurs. No `ARCCobhamPrinciple` parameter and no `[Finite α]` instance occur in the final theorem. After importing the final audit into the root project, `lake build` completed successfully with **8906 jobs**.
+
+This is a rigidity theorem for automatic/finite-kernel invariant colorings. It is **not** a proof of the Collatz conjecture.
+
 ---
 
 ## Lean 4 formalization
@@ -119,6 +140,7 @@ In Lean, Cobham's theorem is supplied as the explicit theorem parameter ARCCobha
 - [ARC7 Lean 4 source archive](lean/ARC7/ARC7_Lean4_Source.zip)
 - [ARC15 Lean 4 source archive](lean/ARC15/ARC15_Lean4_Source.zip)
 - [All-even-base Lean 4 source archive](lean/ARC_EvenBase/ARC_EvenBase_Lean4_Source.zip)
+- [Full General ARC Cobham-free Lean 4 source archive](lean/ARC_FullGeneral_NoCobham_Lean4_Source.zip)
 - [Lean release notes](lean/README.md)
 
 The ARC7 archive contains the active Stage 1-14 chain together with ARC7Final.lean, ARC7Audit_v2.lean, and ARC7Sharpness_v3.lean.
@@ -127,7 +149,7 @@ The ARC15 archive contains the active base-15 proof chain together with ARC15Fin
 
 The all-even-base archive contains the base-factor-descent Stage 1-9 chain together with ARCBaseFactorDescentFinalAudit.lean.
 
-Principal endpoints include arc7_final, arc15_final, and arc_evenBase_final_of_cobham.
+Principal endpoints include arc7_final, arc15_final, arc_evenBase_final_of_cobham, arc_full_general_no_cobham, and arcFinalAudit_full_general_no_cobham.
 
 Lean verification checks the formal proof as encoded. It does not by itself establish literature novelty, nor does it replace mathematical scrutiny of definitions, imported assumptions, and model choices.
 
@@ -143,7 +165,8 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
     │  ├─ ARC5/
     │  ├─ ARC7/
     │  ├─ ARC15/
-    │  └─ ARC_EvenBase/
+    │  ├─ ARC_EvenBase/
+    │  └─ ARC_FullGeneral_NoCobham/
     └─ lean/
        ├─ README.md
        ├─ ARC2/
@@ -152,13 +175,15 @@ Lean verification checks the formal proof as encoded. It does not by itself esta
        ├─ ARC7/
        ├─ ARC15/
        ├─ ARC_EvenBase/
+       ├─ ARC_FullGeneral_NoCobham/
+       ├─ ARC_FullGeneral_NoCobham_Lean4_Source.zip
        └─ ARC3_ARC5_Lean4_Source.zip
 
 ---
 
 ## Relationship to the Collatz conjecture
 
-ARC2, ARC3, ARC5, ARC7, ARC15, and the all-even-base theorem are rigidity results for automatic sequences constrained by shortcut-Collatz invariance.
+ARC2, ARC3, ARC5, ARC7, ARC15, the all-even-base theorem, and the Cobham-free Full General ARC theorem are rigidity results for automatic sequences constrained by shortcut-Collatz invariance.
 
 They should be viewed as structural results around the Collatz problem rather than as proofs of the Collatz conjecture itself.
 
@@ -185,7 +210,7 @@ They should be viewed as structural results around the Collatz problem rather th
 - ARC7: English/Japanese manuscripts, Lean Stage 1-14 chain, final theorem, audit, and sharpness prepared for release.
 - All-even-base ARC: English/Japanese submission-style manuscripts, Lean Stage 1-9 chain, and independent final audit prepared for release.
 - ARC15: English/Japanese manuscripts, complete Lean proof chain, final theorem, automaticity audit, and zero-sharpness theorem released.
-- Next planned direction: General ARC, beginning with a separate general odd-base development.
+- Full General ARC (Cobham-free): English/Japanese papers, Cobham-removal Lean chain, all-base endpoint, and independent final audit released on 2026-09-23.
 
 The project continues to emphasize adversarial review of the Lean dependency chain, explicit axiom/dependency audits, definition-level checking, and separate literature/novelty auditing.
 
