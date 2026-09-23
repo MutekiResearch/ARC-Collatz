@@ -23,7 +23,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{Full General ARC - Independent Audit Note}
-\rhead{23 September 2026}
+\rhead{24 September 2026}
 \cfoot{\thepage}
 \setlength{\headheight}{15pt}
 
@@ -42,39 +42,46 @@ for Collatz-Invariant Sequences''}\\[0.55em]
 dyadic thinness, and topological pumping}
 
 \author{Muteki\\\small Independent Researcher, Japan}
-\date{\textbf{23 September 2026}\\\small Post-release supplementary audit note}
+\date{\textbf{24 September 2026}\\\small Revised post-release supplementary audit note}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This note records a post-release adversarial audit of three structurally delicate
-steps in the Cobham-free Full General ARC proof.  The audit was prompted by a
-challenge that proposed possible failures in (i) the transfer from base-$2$
-automaticity of a shortcut-Collatz-invariant sequence to base-$3$ automaticity
-of its odd subsequence, (ii) the derivation of dyadic nowhere-thickness for the
-odd-subsequence change set, and (iii) the theorem asserting that an odd-base
-automatic Boolean support cannot be both infinite and dyadically nowhere thick.
-A fourth concern was that the Lean theorem might hold only vacuously because
-its hypotheses describe an empty class.
+This note records a revised post-release adversarial audit of four structurally
+important points in the Cobham-free Full General ARC proof.  The audit targets
+(A1) transfer from base-$2$ finite-kernel automaticity to base-$3$ automaticity
+of the odd subsequence, (A2) dyadic nowhere-thickness of the odd-subsequence
+change set, (A3) the odd-base topological-pumping step from dyadic
+nowhere-thickness to finite support, and (A4) the possibility that the main
+rigidity theorem is vacuous or that the exclusion of zero is not genuinely
+sharp.
 
-No counterexample to the published theorem is established in this note, and no
-erratum or corrigendum is asserted.  Source-level tracing confirms that the
-second step is implemented through an explicit affine pullback of a previously
-proved local-density theorem, while the third step is not an unproved
-cross-base heuristic: the formal development contains a dedicated chain from
-odd-base pumping to dyadic residue permutation, child filling, and contradiction
-with nowhere-thickness.  A proposed ternary Cantor-type support also fails to
-supply the claimed counterexample in finite residue tests.  The vacuity concern
-is ruled out constructively by explicit nonconstant-at-zero invariant automatic
-sequences.  The first step is formally connected to the lower theorem
-\code{arc_three_kernel_odd_finite}; however, because that lower proof predates
-the present Cobham-removal package, a fresh line-by-line human re-derivation of
-that lemma remains a sensible priority for continued audit.
+All four audit items have now been reconstructed at the paper level and
+encoded in separate Lean 4 audit files under an explicit independence scope.
+A1 avoids the earlier packaged transfer result; A2 reuses the lower
+local-density theorem but independently rebuilds the A2-specific affine
+pullback; A3 directly avoids the packaged Stage 6--10 conclusions while
+reusing lower infrastructure.  Lean kernel type-checking completed
+successfully for every audit file, and each audit module also completed its
+targeted \code{lake build}.  For the principal audit endpoints, \code{\#print axioms}
+reported only the standard Lean/Mathlib dependencies \code{propext},
+\code{Classical.choice}, and \code{Quot.sound}, with no \code{sorryAx}.
+No counterexample or confirmed defect in the published Full General ARC theorem
+was found.
 
-Here ``independent'' means independent of the main packaged proof endpoint: this
-is an additional adversarial review of the proof architecture, not an external
-peer review by an independent third party.
+The strongest result of the revised audit is therefore not merely a source
+trace.  A1 is re-derived from the kernel definitions using the primitive-root
+behavior of $2$ modulo powers of $3$; A2 is rebuilt from the lower local-density
+theorem by an explicit affine pullback $x=2n+1$; A3 reconstructs the
+odd-base pumping-to-dyadic-filling contradiction; and A4 gives an explicit
+finite-kernel shortcut-invariant witness in every base $B\ge2$ whose value at
+zero may differ from its positive value.
+
+Here ``independent'' means independent of the corresponding packaged proof
+endpoint and reconstructed through lower-level ingredients.  It does not mean
+external third-party peer review, nor does it claim complete import-graph
+isolation of every lower lemma reused by the audit files.
 \end{abstract}
 
 \section{Status and purpose}
@@ -96,278 +103,337 @@ a(T(n))=a(n)\qquad(n\in\Nzero),
 then $a$ is constant on the positive integers.  The value at zero may remain
 independent.
 
-This note does \emph{not} restate the complete proof.  Instead, it asks how the
-argument could fail if the theorem were false.  The audit focuses on the three
-places where two different structures meet:
-\begin{enumerate}[label=(A\arabic*)]
-\item base-$2$ finite-kernel structure versus a base-$3$ odd subsequence;
-\item shortcut-Collatz dynamics versus $2$-adic cylinders;
-\item odd-base finite automata versus dyadic nowhere-thickness.
-\end{enumerate}
-A fourth check asks whether the hypotheses are nonempty or whether the formal
-theorem could be vacuous.
+The first version of this note identified four audit targets.  The revised
+audit has now carried each one through an independent mathematical
+reconstruction and a separate Lean verification.  In this note the word
+\emph{closed} means that the specific audit objection has been answered by a
+reconstruction that was checked by Lean; it does not mean that no further
+mathematical or literature review could ever be useful.
 
 \begin{center}
 \small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\textwidth}{@{}p{0.22\textwidth}X p{0.20\textwidth}@{}}
+\renewcommand{\arraystretch}{1.16}
+\begin{tabularx}{\textwidth}{@{}p{0.20\textwidth}X p{0.18\textwidth}@{}}
 \toprule
-\textbf{Audit target} & \textbf{Present finding} & \textbf{Status}\\
+\textbf{Audit target} & \textbf{Revised finding} & \textbf{Status}\\
 \midrule
 A1. Odd subsequence becomes base-$3$ finite-kernel automatic
-& The public Cobham-removal wrapper reduces exactly to
-  \code{arc_three_kernel_odd_finite}, using only the even branch, odd branch,
-  and finite base-$2$ kernel.  No Collatz-convergence hypothesis appears in
-  the wrapper or in the recorded axiom audit.  A fresh standalone human proof
-  of the lower lemma is still desirable.
-& No confirmed defect; deeper audit retained.\\[0.7em]
+& A fresh kernel-level proof embeds every base-$3$ residual of
+  $b(n)=a(2n+1)$ into the finite base-$2$ kernel of $a$.  The reconstruction
+  does not invoke \code{arc_three_kernel_odd_finite},
+  \code{arc_three_kernel_odd_subset}, or \code{arc_lemma3_1}.
+& \textbf{CLOSED}: independently reconstructed and Lean-verified.\\[0.75em]
 A2. Change set is dyadically nowhere thick
-& The source explicitly invokes the local-density theorem with gap $H=2$ on
-  the affine image $x=2n+1$ and constructs a dyadic child in the original
-  $n$-variable.
-& Source-level route traced.\\[0.7em]
+& The affine pullback $x=2n+1$ is rebuilt directly from the lower
+  local-density theorem with gap $H=2$, without calling the packaged A2 child
+  or thinness theorems.
+& \textbf{CLOSED}: independently reconstructed within the stated audit scope and Lean-verified.\\[0.75em]
 A3. Odd-base automatic + dyadically nowhere thick implies finite support
-& The formal chain explicitly proves dyadic residue permutation, child filling,
-  collision with nowhere-thickness, and then the finite-support theorem.
-& Strongest remaining target for human re-derivation.\\[0.7em]
-A4. Vacuous truth
-& Explicit invariant finite-kernel sequences satisfying the hypotheses exist,
-  including a family that may take a separate value at zero.
-& Ruled out constructively.\\
+& Residue permutation, dyadic child filling, collision with nowhere-thickness,
+  and the finite-support conclusion were reconstructed in a separate audit
+  chain without calling the packaged Stage 6--10 conclusions under audit.
+& \textbf{CLOSED}: direct non-use reconstruction within the stated audit scope and Lean-verified.\\[0.75em]
+A4. Vacuous truth / sharpness at zero
+& For every $B\ge2$, the explicit sequence $a(0)=x$, $a(n)=y$ for $n>0$
+  has a kernel of at most two states and is shortcut invariant.  Choosing
+  $x\ne y$ proves genuine freedom at zero.
+& \textbf{CLOSED}: constructively and Lean-verified.\\
 \bottomrule
 \end{tabularx}
 \end{center}
+\section{Audit A1: independent base-$3$ kernel transfer}
 
-\section{Audit A1: base-$3$ automaticity of the odd subsequence}
-
-Let $a:\Nzero\to\alpha$ be shortcut-Collatz invariant and define
+Let $a:\Nzero\to\alpha$ satisfy the two shortcut branch identities
+\[
+a(2n)=a(n),\qquad a(2n+1)=a(3n+2),
+\]
+and define
 \[
 b(n)=a(2n+1).
 \]
-The parent proof needs
+The target is
 \[
 \K_2(a)\text{ finite}\quad\Longrightarrow\quad\K_3(b)\text{ finite}.
 \]
-The adversarial concern is that repeated interaction between coefficients $2$
-and $3$ might generate infinitely many residual states, or might silently use
-a global statement about Collatz orbits.
+The revised audit re-derives this implication without calling the earlier
+packaged ARC2 transfer theorem.
 
-\subsection{What the active Cobham-removal wrapper actually assumes}
+\subsection{Independent paper reconstruction}
 
-The active Stage-2 wrapper first derives the two branch identities
-\begin{align}
-a(2n)&=a(n),\\
-a(2n+1)&=a(3n+2),
-\end{align}
-from shortcut invariance.  It then unfolds finite-kernel automaticity to obtain
+Take an arbitrary base-$3$ kernel residual of $b$,
 \[
-(\K_2(a)).\mathrm{Finite}
+v(n)=b(3^e n+r),\qquad 0\le r<3^e.
 \]
-and calls the lower theorem
-\begin{center}\code{arc_three_kernel_odd_finite}.\end{center}
-The output is precisely
+Using the odd branch once,
 \[
-\left(\K_3\bigl(n\mapsto a(2n+1)\bigr)\right).\mathrm{Finite}.
+\begin{aligned}
+v(n)
+ &=a\bigl(2(3^e n+r)+1\bigr)\\
+ &=a\bigl(3^{e+1}n+(3r+2)\bigr).
+\end{aligned}
 \]
-The resulting wrapper is
-\begin{center}\code{arc2OddSubseq_threeAutomatic_of_twoAutomatic}.\end{center}
-
-The recorded Lean axiom report for \code{arc_three_kernel_odd_finite} contains
-only the standard logical/quotient dependencies
-\begin{center}\code{propext}, \code{Classical.choice}, \code{Quot.sound}.\end{center}
-Thus the active proof does not register a Collatz-convergence principle, a
-Cobham principle, or an unproved custom axiom at this step.
-
-\subsection{What this does and does not settle}
-
-This source trace defeats one specific criticism: the Stage-2 proof is not
-merely assuming that Collatz orbits ``eventually fall into finitely many
-patterns.''  The finite base-$3$ kernel is supplied by a concrete lower Lean
-theorem whose inputs are the branch identities and finite base-$2$ kernel.
-
-However, formal dependency tracing is not the same as a new human proof.  The
-lower theorem belongs to the earlier ARC2 kernel-transfer development and is
-reused here.  Accordingly, the strongest responsible conclusion of this audit
-is:
-\begin{quote}
-No defect has been identified in the active transfer step, but a fresh
-line-by-line mathematical reconstruction of
-\code{arc_three_kernel_odd_finite}, independent of its original development,
-remains a high-value audit task.
-\end{quote}
-This is a retained audit item, not a correction notice.
-
-\section{Audit A2: dyadic thinness of the odd-subsequence change set}
-
-Define the adjacent-change set
+Set $j=e+1$ and $c=3r+2$.  Then
 \[
+0<c<3^j,\qquad 3\nmid c.
+\]
+Because $2$ is a primitive root modulo $3^j$, choose $s\ge0$ such that
+\[
+2^s c\equiv-1\pmod{3^j}.
+\]
+Hence
+\[
+2^s c+1=q3^j
+\]
+for some integer $q\ge1$.  Repeated use of the even identity together with
+the odd identity in reverse gives
+\[
+a(3^j n+c)=a\bigl(2^{s+j}n+R\bigr),
+\qquad R=2^j q-1.
+\]
+The same arithmetic gives
+\[
+0\le R<2^{s+j}.
+\]
+Therefore every base-$3$ residual $v$ of $b$ is literally a base-$2$ kernel
+residual of $a$.  Thus
+\[
+\K_3(b)\subseteq\K_2(a),
+\]
+and the finiteness of $\K_2(a)$ implies the finiteness of $\K_3(b)$.
+No Cobham theorem, Collatz convergence statement, or finite-alphabet
+hypothesis is used in this reconstruction.
+
+\subsection{Independent Lean audit}
+
+The separate file
+\begin{center}\code{ARCA1IndependentAudit_v2.lean}\end{center}
+formalizes this reconstruction and deliberately avoids direct invocation of
+\code{arc_three_kernel_odd_finite}, \code{arc_three_kernel_odd_subset}, and
+\code{arc_lemma3_1}.  The standalone command
+\begin{center}\code{lake env lean ARC/ARCA1IndependentAudit_v2.lean}\end{center}
+completed successfully, followed by a successful targeted module build
+(8767 jobs in the recorded project state).  The audited endpoints report only
+\code{propext}, \code{Classical.choice}, and \code{Quot.sound}.
+
+\subsection{Audit conclusion for A1}
+
+The original source-level transfer has now been backed by a second proof route
+at both the paper and Lean levels.  The specific concern that the base-$3$
+odd-subsequence automaticity was being supplied by an opaque or convergence-like
+assumption is therefore closed for the audited formal statement.
+\section{Audit A2: independent dyadic thinness reconstruction}
+
+Define the odd subsequence and its adjacent-change set by
+\[
+b(n)=a(2n+1),\qquad
 \D_b=\{n\in\Nzero:b(n)\ne b(n+1)\}.
 \]
-The concern is that shortcut Collatz dynamics involves multiplication by $3$,
-whereas the thinness statement is expressed in dyadic residue classes.  A
-purely heuristic appeal to ``compatibility'' between these structures would
-indeed be insufficient.
+The concern is the interaction between shortcut-Collatz arithmetic and dyadic
+residue classes.  The revised audit isolates exactly the A2-specific affine
+step and rebuilds it from the lower local-density theorem.
 
-\subsection{The actual affine pullback}
+\subsection{Independent affine pullback}
 
-The active Stage-1 proof does not assume such compatibility.  It explicitly
-applies the previously proved local-density theorem
-\begin{center}\code{arc5_naturalInvariantBlock_in_dyadicCylinder}\end{center}
-with gap parameter $H=2$ to the odd affine image.  Starting from a prescribed
-parent class
+Start with an arbitrary dyadic parent class
 \[
-n\equiv r\pmod{2^m},
+n\equiv r\pmod{2^m}.
 \]
-the map
+The affine map
 \[
 x=2n+1
 \]
-sends it into
+sends this parent into
 \[
-x\equiv 2r+1\pmod{2^{m+1}}.
+x\equiv2r+1\pmod{2^{m+1}}.
 \]
-Inside a deeper dyadic child, the local-density theorem supplies
+Apply the already established base-independent local-density theorem to this
+odd affine image with gap $H=2$.  It supplies a deeper integer dyadic child on
+which
 \[
 a(x)=a(x+2).
 \]
-After substituting $x=2n+1$, this is exactly
+The audit then constructs explicitly a deeper child in the original
+$n$-variable whose entire affine image lies in that local-density child.  On
+that child,
 \[
 a(2n+1)=a(2n+3),
 \]
-hence
+so
 \[
 b(n)=b(n+1).
 \]
-The source then pulls the child cylinder back to the $n$-variable and proves
-that it remains inside the original parent cylinder.  Therefore that child is
-disjoint from $\D_b$.
+After converting the integer cylinder to a natural residue class, the child is
+nonempty, remains inside the prescribed parent, and is disjoint from $\D_b$.
+This is exactly dyadic nowhere-thickness.
 
-The public endpoint is
-\begin{center}\code{arc2OddSubseq_changeSet_nowhereThick},\end{center}
-packaged as
-\begin{center}\code{arc2CobhamRemoval_stage1_thinness}.\end{center}
+\subsection{Independent Lean audit}
+
+The file
+\begin{center}\code{ARCA2IndependentAudit.lean}\end{center}
+reconstructs the A2-specific argument without calling
+\code{arc2OddSubseq_local_gap_two_child},
+\code{arc2OddSubseq_changeSet_nowhereThick}, or
+\code{arc2CobhamRemoval_stage1_thinness}.  It reuses the lower theorem
+\code{arc5_naturalInvariantBlock_in_dyadicCylinder}, which belongs to the
+independently developed local-density layer rather than to the A2 conclusion
+under audit.
+
+The standalone Lean check completed successfully, and the targeted build
+\code{lake build ARC.ARCA2IndependentAudit} completed successfully with
+8859 jobs in the recorded project state.  The endpoints
+\code{arcA2_affine_gap_two_child_independent},
+\code{arcA2_changeSet_nowhereThick_independent}, and
+\code{arcA2_target} report only the standard dependencies
+\code{propext}, \code{Classical.choice}, and \code{Quot.sound}.
 
 \subsection{Audit conclusion for A2}
 
-The objection ``base $2$ and multiplication by $3$ are transversal, therefore
-the child need not exist'' does not identify a missing inference in the active
-proof.  The existence of the child is precisely what the earlier local-density
-machinery proves, and the affine conversion is carried out explicitly in the
-Stage-1 source.
+The affine conversion is no longer supported merely by source tracing: it has
+been reconstructed as a separate formal argument from the lower local-density
+interface.  The specific A2 objection is therefore closed.  A deeper audit of
+the local-density theorem itself would be a different audit target, not a gap
+in the A2 pullback.
+\section{Audit A3: independent odd-base topological-pumping reconstruction}
 
-The natural next adversarial question is therefore not whether the two bases
-are different, but whether the local-density theorem itself has been modeled
-correctly and proved from the stated shortcut invariance.  That theorem was
-already developed independently of automaticity in the ARC5 local-density
-chain, so it can be audited as a separate arithmetic lemma family.
+Let $q\ge3$ be odd and let $s:\Nzero\to\{0,1\}$ have finite base-$q$ kernel.
+The target statement is that dyadic nowhere-thickness of the support forces the
+support to be finite.  This is the most structurally delicate mixed-base step:
+the automaton is organized by powers of $q$, while thinness is organized by
+powers of $2$.
 
-\section{Audit A3: odd-base automatic support versus dyadic nowhere-thickness}
+\subsection{Independent paper reconstruction}
 
-This is the most structurally delicate point.  The relevant theorem states,
-for odd $q\ge3$, that if a Boolean sequence has finite base-$q$ kernel and its
-support is dyadically nowhere thick, then its support is finite.
+Assume the support is infinite.  A finite MSD automaton then has a positive
+canonical support word longer than its number of states.  Pumping yields a
+nonempty loop block.  Doubling that loop gives a pumped numerical family
+\[
+N_k=N_0+dG_k,
+\qquad
+G_k=1+Q+\cdots+Q^{k-1},
+\qquad Q=q^{2L},
+\]
+where $L>0$ is the loop length.  Positivity gives $d>0$, so write
+\[
+d=2^s(2v+1).
+\]
+Since $q$ is odd,
+\[
+Q=q^{2L}\equiv1\pmod4.
+\]
+If
+\[
+j-i=2^t(2u+1),
+\]
+the doubled-loop geometric-sum arithmetic gives an exact dyadic displacement
+\[
+N_j-N_i=2^{s+t}(2z+1).
+\]
+Consequently, for $0\le i<j<2^M$, the normalized pump residues are distinct
+modulo $2^M$: the valuation $t$ of $j-i$ is always $<M$.  There are exactly
+$2^M$ indices and $2^M$ residue classes, so the normalized pump map is a
+permutation of all residues modulo $2^M$.
 
-At first sight this is surprising: the automaton reads base-$q$ digits, while
-thinness is measured using powers of $2$.  The audit therefore asks whether the
-proof actually bridges these incompatible scales, or merely assumes that it
-can.
+Restoring the factor $2^s$ and the offset $N_0$, the pumped support family hits
+every deeper dyadic child of one parent cylinder.  Dyadic nowhere-thickness
+requires an empty positive deeper child inside every parent cylinder.  The two
+statements contradict each other.  Hence an infinite odd-base automatic support
+cannot be dyadically nowhere thick, and the support must be finite.
 
-\subsection{The formal bridge is explicit}
+\subsection{Independent Lean audit}
 
-The General ARC chain contains the following dedicated stages.
-\begin{enumerate}[label=\arabic*.]
-\item \textbf{Dyadic residue permutation.}  For an odd base, the normalized
-      doubled-loop pumped family defines a map on residues modulo $2^M$.
-      The theorem \code{arcGeneral_oddPumpResidueMap_injective} proves
-      injectivity; finiteness of the common domain and codomain yields
-      surjectivity; hence every residue modulo $2^M$ is hit.
-\item \textbf{Dyadic child filling.}  The theorem
-      \code{arcGeneral_evenLoopPumpedFamily_hits_every_child_of_exact_two_factor}
-      lifts residue surjectivity into the assertion that the pumped family hits
-      every deeper dyadic child of the relevant parent cylinder.
-\item \textbf{Collision with nowhere-thickness.}  The theorem
-      \code{arcGeneral_child_filling_not_nowhereThick} assumes a pumped family
-      contained in the support, selects the child that thinness claims is empty,
-      and then uses child filling to produce a support point in that same child,
-      a contradiction.
-\item \textbf{Infinite support gives a long pumpable word.}  Stage 9 extracts a
-      sufficiently long canonical support word from any infinite automatic
-      support and feeds it into the Stage-8 collision theorem.
-\item \textbf{Finite-kernel handoff.}  Stage 10 converts finite kernel to an MSD
-      DFAO and applies the preceding topological-pumping theorem.  Its public
-      endpoint is
-      \code{arcGeneral_kernelAutomatic_nowhereThick_support_finite}.
-\end{enumerate}
+The file
+\begin{center}\code{ARCA3IndependentAudit.lean}\end{center}
+reconstructs the sensitive residue-permutation, child-filling, collision, and
+finite-support chain with new audit theorem names.  It deliberately does not
+call the packaged Stage 6 residue-permutation theorem, Stage 7 child-filling
+theorem, Stage 8 collision theorem, Stage 9 topological-pumping endpoint, or
+Stage 10 kernel endpoint.
 
-Thus the base mismatch is not ignored; it is the central arithmetic object of
-Stages 6--10.
+The audit does reuse lower ingredients, notably the finite-kernel-to-MSD bridge,
+the exact Stage-5 dyadic pumping handoff, and a generic long-canonical-word
+lemma.  Because the imported file containing the generic long-word lemma also
+transitively imports later stages, this audit should be described precisely as
+\emph{direct non-use reconstruction} of the Stage 6--10 conclusions rather than
+complete dependency-graph isolation.
 
-\subsection{Adversarial Cantor-style test}
+The standalone Lean check completed successfully.  The targeted command
+\code{lake build ARC.ARCA3IndependentAudit} then completed successfully with
+8819 jobs in the recorded project state.  The principal audit endpoints,
+including \code{arcA3_oddPumpResidueMap_injective},
+\code{arcA3_evenLoopPumpedFamily_hits_every_child_of_exact_two_factor},
+\code{arcA3_child_filling_not_nowhereThick},
+\code{arcA3_kernelAutomatic_nowhereThick_support_finite}, and
+\code{arcA3_target}, report only \code{propext},
+\code{Classical.choice}, and \code{Quot.sound}.
 
-A natural proposed counterexample is the base-$3$ digit-restricted set
+\subsection{Auxiliary Cantor-style sanity check}
+
+The earlier adversarial candidate
 \[
 C=\left\{\sum_{i\ge0}\varepsilon_i3^i:
-\varepsilon_i\in\{0,1\},\text{ finitely many }\varepsilon_i\ne0\right\}.
+\varepsilon_i\in\{0,1\},\text{ finitely many }\varepsilon_i\ne0\right\}
 \]
-This set is base-$3$ automatic and infinite.  The proposed attack asks whether
-it might also be dyadically nowhere thick.
-
-A finite residue check gives the opposite indication.  Let
+was also tested by exact finite residue enumeration.  For
 \[
 C_L=\left\{\sum_{i=0}^{L-1}\varepsilon_i3^i:
-\varepsilon_i\in\{0,1\}\right\}.
+\varepsilon_i\in\{0,1\}\right\},
 \]
-For each modulus $2^m$ in the following range, a finite $L$ already makes
-$C_L$ hit every residue class modulo $2^m$:
-
-\begin{center}
-\small
-\begin{tabular}{@{}rrrrrrrrrr@{}}
-\toprule
-$m$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
-\midrule
-smallest tested $L$ & 1 & 3 & 4 & 5 & 7 & 8 & 9 & 11 & 12 \\
-\bottomrule
-\end{tabular}
-\end{center}
-For $m=10$, the smallest tested value is also $L=12$.  These are exact finite
-computations of residue coverage, not random sampling.  They do not constitute
-a proof for all $m$, but they show that this particular Cantor-style candidate
-is not supported by the suggested finite test.  In particular, an earlier
-finite search that reported failure to find an empty child in the parent
-$0\pmod 2$ points against, rather than for, dyadic nowhere-thickness.
+finite $L$ already covered every residue modulo $2^m$ throughout the tested
+range.  This computation is not part of the proof, but it points in the same
+direction as the formal child-filling mechanism and did not produce a
+counterexample.
 
 \subsection{Audit conclusion for A3}
 
-No counterexample has been identified.  The formal proof contains an explicit
-mixed-base mechanism whose purpose is to turn odd-base pumping into complete
-coverage of dyadic children.  Nevertheless, because this mechanism is both
-novel within the ARC development and mathematically nontrivial, A3 remains the
-highest-priority target for a completely independent human proof written
-without following the Lean file order.
+The mixed-base step has now been reconstructed independently at the mathematical
+level and through a separate Lean chain.  No counterexample was found, and the
+specific objection that the proof merely assumes compatibility between odd-base
+automaticity and dyadic topology is closed for the audited theorem.
+\section{Audit A4: constructive non-vacuity and sharpness at zero}
 
-\section{Audit A4: vacuous-truth concern}
+The final audit item asks whether the theorem could be true only because its
+hypotheses describe an empty class, and whether excluding zero from the
+rigidity conclusion is genuinely necessary.
 
-The suggestion that the Lean theorem might be true only because no sequence
-satisfies its hypotheses can be rejected constructively.
-
-Fix arbitrary $x,y\in\alpha$ and define
+For arbitrary values $x,y\in\alpha$, define
 \[
 a(0)=x,\qquad a(n)=y\quad(n>0).
 \]
-Then $T(0)=0$, while $T(n)>0$ for every $n>0$.  Hence
+For every base $B\ge2$, every base-$B$ kernel residual of this sequence is
+either the original sequence or the constant sequence $n\mapsto y$.  Hence
 \[
-a(T(n))=a(n)
+|\K_B(a)|\le2.
 \]
-for all $n\ge0$.  Moreover, in every base $B\ge2$, every kernel residual of
-$a$ is either the original sequence $a$ or the constant sequence $n\mapsto y$.
-Thus its base-$B$ kernel has at most two states.
+Also $T(0)=0$ and $T(n)>0$ for every $n>0$, so
+\[
+a(T(n))=a(n)\qquad(n\ge0).
+\]
+If $x\ne y$, then $a(0)\ne a(1)$, while all positive values are equal.  Thus
+the hypothesis class is nonempty in every base and the freedom at zero is
+real.
 
-If $x\ne y$, this sequence is not globally constant on $\Nzero$, but it is
-constant on the positive integers exactly as the theorem predicts.  Therefore
-the hypothesis class is manifestly nonempty, and the theorem is not a vacuous
-implication caused by an inconsistent or empty premise.
+\subsection{Independent Lean audit}
 
+The file
+\begin{center}\code{ARCA4IndependentAudit_v2.lean}\end{center}
+proves the kernel bound and shortcut invariance directly for arbitrary
+$B\ge2$, without invoking an earlier ARC sharpness theorem or the Full General
+rigidity endpoint.  It also packages a concrete Boolean witness in
+\code{arcA4_bool_witness}.
+
+The standalone Lean check completed successfully; after one local proof repair
+in the first draft, the final file contains no unsolved goal and no
+\code{sorryAx}.  The targeted build
+\code{lake build ARC.ARCA4IndependentAudit_v2} completed successfully with
+8845 jobs in the recorded project state.  The principal endpoints report only
+the standard Lean/Mathlib dependencies.
+
+\subsection{Audit conclusion for A4}
+
+The vacuity concern and the sharpness-at-zero concern are both closed
+constructively.  This is stronger than merely exhibiting one base-specific
+example: the same two-state kernel construction works uniformly for every base
+$B\ge2$.
 \section{What a genuine counterexample would have to provide}
 
 To refute the Full General ARC theorem, it is not enough to propose a coloring
@@ -389,51 +455,86 @@ a(2n+1)=a(3n+2).
 \]
 Any claimed counterexample must survive these exact checks.
 
-\section{Lean 4: what formal verification does and does not certify}
+\section{Lean 4 verification summary and audit scope}
 
-The completed development reported successful project builds and no
-\code{sorryAx} at the final audited endpoints.  The final theorem also no longer
-carries an explicit \code{ARCCobhamPrinciple} argument or a
-\code{[Finite alpha]} hypothesis.  This is meaningful evidence that the
-packaged theorem follows from the definitions and imported lemmas accepted by
-Lean.
+The revised audit adds four dedicated source files to the already completed
+Cobham-free Full General ARC development:
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{@{}p{0.34\textwidth}X p{0.16\textwidth}@{}}
+\toprule
+\textbf{Audit file} & \textbf{Main independent target} & \textbf{Target build}\\
+\midrule
+\code{ARCA1IndependentAudit_v2.lean}
+& base-$2$ kernel $\Rightarrow$ base-$3$ odd-subsequence kernel transfer
+& 8767 jobs\\
+\code{ARCA2IndependentAudit.lean}
+& affine pullback $x=2n+1$ and dyadic thinness of the odd change set
+& 8859 jobs\\
+\code{ARCA3IndependentAudit.lean}
+& odd-base residue permutation $\Rightarrow$ child filling $\Rightarrow$ finite support
+& 8819 jobs\\
+\code{ARCA4IndependentAudit_v2.lean}
+& all-base finite-kernel invariant witness and sharpness at zero
+& 8845 jobs\\
+\bottomrule
+\end{tabularx}
+\end{center}
 
-Formal verification does not, however, replace the following external tasks:
-\begin{itemize}
-\item checking that the formal definitions express the intended mathematical
-      notions;
-\item checking the exposition of imported lower lemmas against an independent
-      paper proof;
-\item checking novelty and relation to the literature;
-\item searching for an unintended theorem that is true for a different reason
-      than the intended argument.
-\end{itemize}
-The present note is directed at the first two items.  Its role is therefore
-supplementary: it records where the proof was attacked, what the source-level
-trace showed, and which points still merit independent mathematical
-reconstruction.
+Each file first passed \code{lake env lean} as a standalone module and then its
+corresponding targeted \code{lake build}.  Across the principal audit
+endpoints, \code{\#print axioms} reports the standard dependencies
+\begin{center}
+\code{propext}, \code{Classical.choice}, \code{Quot.sound}
+\end{center}
+with the minor exception that some elementary endpoints require only a subset
+of these.  No final audit endpoint reports \code{sorryAx}.
 
-\section{Current audit judgment and next steps}
+This evidence has a precise scope.  Lean verifies the formal statements from
+the definitions and imported lower lemmas.  The audit files were designed to
+avoid the packaged conclusions being audited, but they intentionally reuse
+lower infrastructure rather than re-proving all of Mathlib, the automaticity
+bridge, local-density arithmetic, or Stage-5 pumping from first principles.
+Accordingly, this revised note supports a strong internal consistency claim for
+A1--A4, not a claim of external peer review, complete foundational
+independence, or exhaustive novelty.
+\section{Current audit judgment}
 
-The adversarial review has not produced a confirmed error in the published
-Full General ARC theorem.  It has instead isolated three high-value audit
-points.  The present status is:
+The four objections isolated in the first version of this note have now all
+been carried through a second mathematical reconstruction route, with the
+scope of reused lower lemmas stated explicitly, and separate Lean kernel
+verification:
 \begin{enumerate}[label=\arabic*.]
-\item \textbf{A1: retained for deeper audit.}  Re-derive
-      \code{arc_three_kernel_odd_finite} from its kernel definitions on paper,
-      without invoking the packaged theorem.
-\item \textbf{A2: source-level path confirmed.}  The affine dyadic pullback is
-      explicit; a future audit should target the underlying local-density
-      theorem itself rather than the mere fact that bases $2$ and $3$ differ.
-\item \textbf{A3: highest priority.}  Reconstruct the residue-permutation and
-      child-filling argument independently, and actively search for an infinite
-      odd-base automatic support that could evade the proof.
-\item \textbf{A4: closed.}  Vacuous truth is ruled out by explicit witnesses.
+\item \textbf{A1 CLOSED.}  The base-$3$ odd-subsequence kernel transfer was
+      independently re-derived from the kernel definitions and formalized
+      without the earlier packaged transfer lemma.
+\item \textbf{A2 CLOSED.}  The affine dyadic pullback was independently rebuilt
+      from the lower local-density theorem and Lean-verified.
+\item \textbf{A3 CLOSED.}  The odd-base residue-permutation and dyadic
+      child-filling contradiction was independently reconstructed and
+      Lean-verified through a direct non-use audit chain.
+\item \textbf{A4 CLOSED.}  Non-vacuity and the genuine freedom of the zero value
+      were established uniformly for every base $B\ge2$ by an explicit
+      two-state-kernel witness.
 \end{enumerate}
 
-Accordingly, this document is an \emph{Independent Audit Note}, not an erratum,
-corrigendum, or replacement of the parent paper.  If a genuine defect is later
-identified, it should be recorded separately and transparently as a correction.
+No confirmed mathematical defect, hidden Collatz-convergence premise, Cobham
+handoff, or \code{sorryAx} was found in these audited steps.  This conclusion
+should still be read with ordinary mathematical caution: future review may
+probe lower lemmas, modeling choices, or literature overlap that are outside
+the four objections closed here.
+
+Accordingly, this document remains an \emph{Independent Audit Note}, not an
+erratum or corrigendum.  Its revised purpose is to record that the four
+initially identified attack points have survived a second reconstruction route.
+If a genuine defect is later identified, it should be documented separately and
+transparently as a correction.
+\section*{Revision record}
+First audit note: 23 September 2026.  Revised audit: 24 September 2026 after
+completion of the independent A1--A4 paper reconstructions and Lean audit
+modules.  The original parent theorem is unchanged; this revision updates the
+status of the supplementary audit only.
 
 \section*{Reproducibility note}
 
@@ -459,7 +560,7 @@ artifacts remains with the human author.
 \bibitem{Parent}
 Muteki,
 \emph{Cobham-Free Full General Automatic Rigidity for Collatz-Invariant Sequences},
-Full General ARC release v1.0.0, 23 September 2026.
+Full General ARC release v1.0.0, 24 September 2026.
 
 \bibitem{AlloucheShallit}
 J.-P. Allouche and J. Shallit,
